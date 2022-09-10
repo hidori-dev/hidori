@@ -1,0 +1,19 @@
+# IDE files
+.idea/
+.vscode/
+
+# Build files
+dist/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test files
+.coverage
+.pytest_cache/
+.mypy_cache/
+
+# osx
+*.DS_Store
