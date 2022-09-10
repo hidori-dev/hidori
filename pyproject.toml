@@ -4,6 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Piotr Szpetkowski <piotr.szpetkowski@pyquest.space>"]
 readme = "README.md"
+packages = [
+    { include = "hidori_core", from = "src" },
+    { include = "hidori_runner", from = "src" },
+    { include = "hidori_cli", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -12,6 +17,9 @@ python = "^3.11"
 black = "^22.8.0"
 ipython = "^8.5.0"
 pre-commit = "^2.20.0"
+
+[tool.poetry.scripts]
+hidori-pipeline = "hidori_cli.apps.pipeline:main"
 
 [build-system]
 requires = ["poetry-core"]
