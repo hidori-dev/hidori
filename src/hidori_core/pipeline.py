@@ -1,10 +1,11 @@
 import json
-import shutil
-import tempfile
 import pathlib
+import shutil
 import subprocess
-import tomllib
+import tempfile
 from typing import Any
+
+import tomllib
 
 import hidori_core
 import hidori_runner
@@ -55,7 +56,7 @@ class Pipeline:
     def from_toml_path(cls, path: str) -> "Pipeline":
         with open(path, "rb") as f:
             data = tomllib.load(f)
-        
+
         return Pipeline(data)
 
     def __init__(self, data: dict[str, Any]) -> None:
@@ -93,7 +94,9 @@ class Pipeline:
             self._copy_core_tree("utils", tmpdirpath)
 
             # TODO: Use appropriate executor instead of a hardcoded remote
-            executor_path = pathlib.Path(hidori_runner.__file__).parent / "executors/remote.py"
+            executor_path = (
+                pathlib.Path(hidori_runner.__file__).parent / "executors/remote.py"
+            )
             tmp_executor_path = pathlib.Path(tmpdirpath) / "executor.py"
             shutil.copyfile(executor_path, tmp_executor_path)
 
@@ -103,7 +106,10 @@ class Pipeline:
 
             # TO THE STARS!
             # TODO: Part of the transport
-            scp_cmd = f"scp {' '.join(SSH_OPTIONS)} -qr {tmpdirpath} {self.ssh_user}@{self.ssh_ip}:{tmpdirpath}"
+            scp_cmd = (
+                f"scp {' '.join(SSH_OPTIONS)} -qr {tmpdirpath} "
+                f"{self.ssh_user}@{self.ssh_ip}:{tmpdirpath}"
+            )
             subprocess.run(scp_cmd.split())
 
         self._executor_dir = tmpdirpath
@@ -114,7 +120,9 @@ class Pipeline:
         open(tmp_core_init_path, "w").close()
         core_package_path = pathlib.Path(hidori_core.__file__).parent / dirname
         tmp_core_package_path = pathlib.Path(dest) / f"hidori_core/{dirname}"
-        shutil.copytree(str(core_package_path), str(tmp_core_package_path), dirs_exist_ok=True)
+        shutil.copytree(
+            str(core_package_path), str(tmp_core_package_path), dirs_exist_ok=True
+        )
 
     def run(self):
         if not self._prepared:
@@ -127,5 +135,8 @@ class Pipeline:
         # TODO: Rename this method - modules won't always run on remote.
         # TODO: Impl a dedicated ssh Transport class
         # TODO: Replace subprocess calls
-        runner_ssh_cmd = f"ssh {' '.join(SSH_OPTIONS)} -qt {self.ssh_user}@{self.ssh_ip} python3 {self._executor_dir}/executor.py"
+        runner_ssh_cmd = (
+            f"ssh {' '.join(SSH_OPTIONS)} -qt {self.ssh_user}@{self.ssh_ip} "
+            f"python3 {self._executor_dir}/executor.py"
+        )
         subprocess.run(runner_ssh_cmd.split())

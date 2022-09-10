@@ -22,7 +22,6 @@ repos:
     rev: v0.971
     hooks:
       - id: mypy
-        args: ["--strict"]
         files: src
 ci:
   autofix_prs: false

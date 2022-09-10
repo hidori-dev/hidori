@@ -5,19 +5,24 @@ from hidori_core.schema.base import Field, ValidationError
 
 class Text(Field):
     @classmethod
-    def from_annotation(cls, annotation: Any, required: bool = True) -> Optional["Text"]:
-        if annotation == str:
-            return cls(required)
-    
+    def from_annotation(
+        cls, annotation: Any, required: bool = True
+    ) -> Optional["Text"]:
+        return cls(required) if annotation == str else None
+
     def __init__(self, required: bool) -> None:
         self.required = required
 
 
 class OneOf(Field):
     @classmethod
-    def from_annotation(cls, annotation: Any, required: bool = True) -> Optional["OneOf"]:
+    def from_annotation(
+        cls, annotation: Any, required: bool = True
+    ) -> Optional["OneOf"]:
         if annotation.__origin__ == Literal:
             return cls(annotation.__args__, required)
+
+        return None
 
     def __init__(self, values: tuple[Any], required: bool) -> None:
         self.allowed_values = values

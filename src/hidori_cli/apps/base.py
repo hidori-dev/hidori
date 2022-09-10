@@ -7,7 +7,7 @@ from hidori_cli.commands.base import BaseData
 
 class BaseCLIApplication:
     def __init__(self) -> None:
-        name_parts: list[str] = re.findall('.[^A-Z]*', type(self).__name__)[:-1]
+        name_parts: list[str] = re.findall(".[^A-Z]*", type(self).__name__)[:-1]
         self.name = "-".join([p.lower() for p in name_parts])
         self.parser = argparse.ArgumentParser(description=self.__doc__)
         self._commands: dict[str, Command[BaseData]] = {}
@@ -16,7 +16,9 @@ class BaseCLIApplication:
     def _register_commands(self) -> None:
         subparsers = self.parser.add_subparsers(dest="subparser_name")
         for command_cls in COMMAND_REGISTRY[self.name].values():
-            subparser = subparsers.add_parser(command_cls.name, help=command_cls.__doc__)
+            subparser = subparsers.add_parser(
+                command_cls.name, help=command_cls.__doc__
+            )
             self._commands[command_cls.name] = command_cls(subparser)
 
     def run(self) -> None:

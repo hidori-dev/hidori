@@ -22,7 +22,7 @@ class Command(Generic[TD]):
     backend_parse_content: bool = False
 
     def __init_subclass__(cls) -> None:
-        app_name, cmd_name, _ = re.findall('.[^A-Z]*', cls.__name__)
+        app_name, cmd_name, _ = re.findall(".[^A-Z]*", cls.__name__)
         app_name = f"hidori-{app_name.lower()}"
         cmd_name = cmd_name.lower()
 

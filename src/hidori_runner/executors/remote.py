@@ -1,8 +1,8 @@
 import json
 import pathlib
 
-from hidori_core.utils import Messenger
 from hidori_core.modules import MODULES_REGISTRY
+from hidori_core.utils import Messenger
 
 RETURN_TO_INITIATOR_MODULES = ["file-push"]
 

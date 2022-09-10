@@ -12,7 +12,9 @@ class HostnameSchema(Schema):
 
 
 class HostnameModule(Module, name="hostname", schema_cls=HostnameSchema):
-    def execute(self, validated_data: Dict[str, str], messenger: Messenger) -> Dict[str, str]:
+    def execute(
+        self, validated_data: Dict[str, str], messenger: Messenger
+    ) -> Dict[str, str]:
         new_hostname = validated_data["name"]
 
         sysbus = dbus.SystemBus()

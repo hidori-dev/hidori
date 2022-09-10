@@ -1,6 +1,6 @@
 from typing import Any, List, Optional, Type, TypeVar, Union
 
-from hidori_core.schema.errors import ValidationError, SkipFieldError, SchemaError
+from hidori_core.schema.errors import SchemaError, SkipFieldError, ValidationError
 
 TField = TypeVar("TField", bound="Field")
 
@@ -14,7 +14,9 @@ class Field:
         FIELDS_REGISTRY.append(cls)
 
     @classmethod
-    def from_annotation(cls: Type[TField], annotation: Any, required: bool = True) -> Optional[TField]:
+    def from_annotation(
+        cls: Type[TField], annotation: Any, required: bool = True
+    ) -> Optional[TField]:
         ...
 
     def validate(self, value: Optional[Any]) -> Optional[Any]:
@@ -68,7 +70,7 @@ def field_from_annotation(annotation: Any, required: bool = True) -> Field:
 
         required = False
         for base_type in annotation.__args__:
-            if base_type == type(None):
+            if isinstance(base_type, type(None)):
                 continue
 
             return field_from_annotation(base_type, required)
