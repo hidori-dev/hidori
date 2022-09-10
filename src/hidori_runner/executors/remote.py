@@ -36,7 +36,7 @@ def main():
 
         module = MODULES_REGISTRY[task_data["module"]]
         messenger = Messenger(task)
-        module.execute(task_data, messenger)
+        module.validate_and_execute(task_data, messenger)
         messenger.say_all()
 
     # TODO: Summary of failed, affected and unaffected tasks
