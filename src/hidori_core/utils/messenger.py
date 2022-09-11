@@ -45,8 +45,7 @@ class Messenger:
     def queue_info(self, message: str) -> None:
         now = datetime.datetime.now().time().strftime("%H:%M:%S")
         self._messages.append(
-            f"[{now}] {Modifiers.BOLD}"
-            f"INFO:{Colors.RESET}{Modifiers.RESET} {message}"
+            f"[{now}] {Modifiers.BOLD}" f"INFO:{Modifiers.RESET} {message}"
         )
 
     def say_all(self):
