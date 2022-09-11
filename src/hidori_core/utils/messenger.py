@@ -42,6 +42,13 @@ class Messenger:
             f"AFFECTED:{Colors.RESET}{Modifiers.RESET} {message}"
         )
 
+    def queue_info(self, message: str) -> None:
+        now = datetime.datetime.now().time().strftime("%H:%M:%S")
+        self._messages.append(
+            f"[{now}] {Modifiers.BOLD}"
+            f"INFO:{Colors.RESET}{Modifiers.RESET} {message}"
+        )
+
     def say_all(self):
         print(
             f"{Modifiers.BOLD}[{self._user}@{self._host}: "

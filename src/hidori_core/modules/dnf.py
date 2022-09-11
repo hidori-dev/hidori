@@ -37,7 +37,7 @@ class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
 
             for package in base.transaction.install_set:
                 # TODO: verbose only, messenger should accept boolean parameter verbose
-                messenger.queue_success(
+                messenger.queue_info(
                     f"will install {package.name} to version "
                     f"{package.version}-{package.release}"
                 )
@@ -58,8 +58,7 @@ class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
             package_count = len(base.transaction.install_set)
             for package in base.transaction.install_set:
                 # TODO: verbose only, messenger should accept boolean parameter verbose
-                # TODO: this should be INFO instead of success
-                messenger.queue_success(
+                messenger.queue_info(
                     f"will upgrade {package.name} to version "
                     f"{package.version}-{package.release}"
                 )
