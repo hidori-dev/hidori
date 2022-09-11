@@ -3,7 +3,7 @@ from typing import Dict
 
 from hidori_core.modules.base import Module
 from hidori_core.schema import Schema
-from hidori_core.utils.messenger import Messenger
+from hidori_core.utils import Messenger
 
 
 class HelloSchema(Schema):
