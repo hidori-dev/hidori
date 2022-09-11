@@ -70,7 +70,7 @@ def field_from_annotation(annotation: Any, required: bool = True) -> Field:
 
         required = False
         for base_type in annotation.__args__:
-            if isinstance(base_type, type(None)):
+            if isinstance(None, base_type):
                 continue
 
             return field_from_annotation(base_type, required)
