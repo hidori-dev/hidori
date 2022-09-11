@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 from hidori_core.schema.errors import SchemaError, SkipFieldError, ValidationError
 
@@ -29,7 +29,7 @@ class Field:
 
 
 class Schema:
-    fields: dict[str, Field]
+    fields: Dict[str, Field]
 
     def __init_subclass__(cls):
         cls.fields = {}
@@ -40,8 +40,8 @@ class Schema:
             cls.fields[name] = field_from_annotation(annotation)
 
     @classmethod
-    def validate(cls, data: dict) -> dict:
-        validated_data = {}
+    def validate(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+        validated_data: Dict[str, Any] = {}
         errors = {}
 
         for name, field in cls.fields.items():
