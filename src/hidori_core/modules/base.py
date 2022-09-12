@@ -26,7 +26,7 @@ class Module:
         except SchemaError as e:
             module = task_data["module"]
             for field, error in e.errors.items():
-                messenger.queue_error(f"module {module}, option {field}: {error}")
+                messenger.queue_error(f"module::{module}, field::{field}: {error}")
             return {"state": "error"}
 
         return self.execute(validated_data, messenger)
