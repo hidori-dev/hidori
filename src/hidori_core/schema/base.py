@@ -1,6 +1,11 @@
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
-from hidori_core.schema.errors import SchemaError, SkipFieldError, ValidationError
+from hidori_core.schema.errors import (
+    ConstraintError,
+    SchemaError,
+    SkipFieldError,
+    ValidationError,
+)
 
 TField = TypeVar("TField", bound="Field")
 
@@ -28,16 +33,37 @@ class Field:
             return value
 
 
+class Constraint:
+    def process_schema(self, annotations: Dict[str, Any]) -> None:
+        ...
+
+    def apply(self, schema: Type["Schema"], data: Dict[str, Any]) -> None:
+        ...
+
+
 class Schema:
     fields: Dict[str, Field]
 
     def __init_subclass__(cls):
         cls.fields = {}
+        errors = {}
 
         for name, annotation in cls.__annotations__.items():
             if name == "fields":
                 continue
+
+            constraint = getattr(cls, name, None)
+            if constraint and isinstance(constraint, Constraint):
+                try:
+                    constraint.process_schema(cls.__annotations__)
+                except ConstraintError as e:
+                    errors[name] = str(e)
+                    continue
+
             cls.fields[name] = field_from_annotation(annotation)
+
+        if errors:
+            raise SchemaError(errors)
 
     @classmethod
     def validate(cls, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -45,10 +71,15 @@ class Schema:
         errors = {}
 
         for name, field in cls.fields.items():
+            constraint = getattr(cls, name, None)
+            if constraint and isinstance(constraint, Constraint):
+                constraint.apply(cls, data)
+
             try:
                 validated_data[name] = field.validate(data.get(name))
             except ValidationError as e:
                 errors[name] = str(e)
+                continue
             except SkipFieldError:
                 continue
 
