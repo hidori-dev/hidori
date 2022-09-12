@@ -26,6 +26,7 @@ class RequiresConstraint(Constraint):
             )
 
     def apply(self, schema: Type[Schema], data: Dict[str, Any]) -> None:
+        # TODO: data_conditions should likely move to the Constraint base cls
         for condition in self.data_conditions:
             if not condition(data):
                 return
