@@ -4,11 +4,21 @@ import dnf
 
 from hidori_core.modules.base import Module
 from hidori_core.schema.base import Schema
+from hidori_core.schema.constraints import Requires
 from hidori_core.utils import Messenger
+
+DNF_STATE_INSTALLED = "installed"
+DNF_STATE_UPGRADED = "upgraded"
+
+
+def condition_require_package_if_state_installed(data: Dict[str, Any]) -> bool:
+    return data.get("state") == DNF_STATE_INSTALLED
 
 
 class DnfSchema(Schema):
-    state: Literal["upgraded", "installed"]
+    state: Literal["upgraded", "installed"] = Requires(
+        ["package"], data_conditions=[condition_require_package_if_state_installed]
+    )
     package: Optional[str]
 
 
