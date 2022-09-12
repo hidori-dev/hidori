@@ -36,5 +36,5 @@ class OneOf(Field):
         else:
             allowed_values = ", ".join(self.allowed_values)
             raise ValidationError(
-                f"value `{value}` is not allowed. Allowed values: {allowed_values}"
+                f"value `{value}` not allowed; allowed values are `{allowed_values}`"
             )
