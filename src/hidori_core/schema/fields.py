@@ -1,5 +1,6 @@
-from typing import Any, Literal, Optional
+from typing import Any, Optional, Tuple
 
+from hidori_core.compat.typing import Literal
 from hidori_core.schema.base import Field, ValidationError
 
 
@@ -24,7 +25,7 @@ class OneOf(Field):
 
         return None
 
-    def __init__(self, values: tuple[Any], required: bool) -> None:
+    def __init__(self, values: Tuple[Any], required: bool) -> None:
         self.allowed_values = values
         self.required = required
 

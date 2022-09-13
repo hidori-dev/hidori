@@ -1,7 +1,11 @@
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, Optional
 
-import dnf
+try:
+    import dnf
+except ImportError:
+    dnf = None
 
+from hidori_core.compat.typing import Literal
 from hidori_core.modules.base import Module
 from hidori_core.schema.base import Schema
 from hidori_core.schema.constraints import Requires
@@ -25,7 +29,7 @@ class DnfSchema(Schema):
 class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
     def execute(
         self, validated_data: Dict[str, Any], messenger: Messenger
-    ) -> dict[str, str]:
+    ) -> Dict[str, str]:
         base = dnf.Base()
         base.read_all_repos()
         base.fill_sack()

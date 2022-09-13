@@ -89,6 +89,7 @@ class Pipeline:
         # It will also allow third parties to define their own modules.
         # TODO: This should likely be part of the SSH driver
         with tempfile.TemporaryDirectory(prefix="hidori-") as tmpdirpath:
+            self._copy_core_tree("compat", tmpdirpath)
             self._copy_core_tree("modules", tmpdirpath)
             self._copy_core_tree("schema", tmpdirpath)
             self._copy_core_tree("utils", tmpdirpath)

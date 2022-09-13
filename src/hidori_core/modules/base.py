@@ -8,7 +8,7 @@ MODULES_REGISTRY: Dict[str, "Module"] = {}
 
 
 class Module:
-    def __init_subclass__(cls, /, name: str, schema_cls: Type[Schema]) -> None:
+    def __init_subclass__(cls, *, name: str, schema_cls: Type[Schema]) -> None:
         super().__init_subclass__()
 
         if name in MODULES_REGISTRY:
