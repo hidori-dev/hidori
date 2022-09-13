@@ -89,6 +89,13 @@ class Pipeline:
         # It will also allow third parties to define their own modules.
         # TODO: This should likely be part of the SSH driver
         with tempfile.TemporaryDirectory(prefix="hidori-") as tmpdirpath:
+            # TODO: This is terrible. Delete as soon as 3.7 drops.
+            import typing_extensions
+
+            ty_exts_path = typing_extensions.__file__
+            tmp_ty_exts_path = pathlib.Path(tmpdirpath) / "typing_extensions.py"
+            shutil.copyfile(ty_exts_path, tmp_ty_exts_path)
+
             self._copy_core_tree("compat", tmpdirpath)
             self._copy_core_tree("modules", tmpdirpath)
             self._copy_core_tree("schema", tmpdirpath)
