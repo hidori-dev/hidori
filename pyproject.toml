@@ -19,6 +19,9 @@ black = "^22.8.0"
 ipython = "^8.5.0"
 pre-commit = "^2.20.0"
 
+[tool.poetry.group.pypi.dependencies]
+twine = "^4.0.1"
+
 [tool.poetry.scripts]
 hidori-pipeline = "hidori_cli.apps.pipeline:main"
 
