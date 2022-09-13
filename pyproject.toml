@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hidori"
-version = "0.1.0"
+version = "0.2.0.dev0"
 description = ""
 authors = ["Piotr Szpetkowski <piotr.szpetkowski@pyquest.space>"]
 readme = "README.md"
