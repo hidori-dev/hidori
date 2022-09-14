@@ -35,9 +35,9 @@ def main():
                     f.write(str(step))
                 return
 
+        messenger.set_task(task)
         module = MODULES_REGISTRY[task_data["module"]]
         module.validate_and_execute(task_data, messenger)
-        messenger.set_task(task)
         messenger.flush()
 
     # TODO: Summary of failed, affected and unaffected tasks
