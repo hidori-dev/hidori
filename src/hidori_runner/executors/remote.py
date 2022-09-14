@@ -24,6 +24,7 @@ def main():
         with savefile_path.open() as f:
             starting_step = int(f.read())
 
+    messenger = Messenger()
     for (step, (task, task_data)) in enumerate(data.items()):
         if step < starting_step:
             continue
@@ -35,9 +36,9 @@ def main():
                 return
 
         module = MODULES_REGISTRY[task_data["module"]]
-        messenger = Messenger(task)
         module.validate_and_execute(task_data, messenger)
-        messenger.say_all()
+        messenger.set_task(task)
+        messenger.flush()
 
     # TODO: Summary of failed, affected and unaffected tasks
 

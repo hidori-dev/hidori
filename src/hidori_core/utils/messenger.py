@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 
 class Colors:
@@ -14,12 +15,15 @@ class Modifiers:
 
 
 class Messenger:
-    def __init__(self, task: str) -> None:
+    def __init__(self) -> None:
         # TODO: user and host are hardcoded
         self._user = "root"
         self._host = "vm"
+        self._task: str = ""
+        self._messages: List[str] = []
+
+    def set_task(self, task: str) -> None:
         self._task = task
-        self._messages: list[str] = []
 
     def queue_success(self, message: str) -> None:
         now = datetime.datetime.now().time().strftime("%H:%M:%S")
@@ -48,11 +52,11 @@ class Messenger:
             f"[{now}] {Modifiers.BOLD}" f"INFO:{Modifiers.RESET} {message}"
         )
 
-    def say_all(self):
+    def flush(self):
         print(
             f"{Modifiers.BOLD}[{self._user}@{self._host}: "
             f"{self._task}]{Modifiers.RESET}"
         )
-        for message in self._messages:
-            print(message)
+        while self._messages:
+            print(self._messages.pop(0))
         print()
