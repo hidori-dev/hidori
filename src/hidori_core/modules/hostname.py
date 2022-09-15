@@ -1,6 +1,9 @@
 from typing import Dict
 
-import dbus
+try:
+    import dbus
+except ImportError:
+    dbus = None
 
 from hidori_core.modules.base import Module
 from hidori_core.schema import Schema

@@ -3,6 +3,7 @@ import pathlib
 import shutil
 import subprocess
 import tempfile
+import uuid
 from typing import Any
 
 import tomllib
@@ -10,6 +11,7 @@ import tomllib
 import hidori_core
 import hidori_runner
 from hidori_common import CLIMessageWriter
+from hidori_core.modules import MODULES_REGISTRY
 
 SSH_OPTIONS = [
     "-o ControlMaster=auto",
@@ -21,33 +23,41 @@ PIPELINE_MODULES_REGISTRY: dict[str, type["PipelineStep"]] = {}
 
 
 class PipelineStep:
-    def __init_subclass__(cls, /, module_name: str) -> None:
+    def __init_subclass__(cls, *, module_name: str) -> None:
         super().__init_subclass__()
+
+        if module_name not in MODULES_REGISTRY and module_name != "*":
+            raise RuntimeError(f"{module_name} module does not exist.")
 
         if module_name in PIPELINE_MODULES_REGISTRY:
             raise RuntimeError(f"{module_name} module name is already registered.")
         PIPELINE_MODULES_REGISTRY[module_name] = cls
 
-    def __init__(self, pipeline: "Pipeline") -> None:
-        self._pipeline = pipeline
+    def __init__(self, task_name: str, task_data: dict[str, Any]) -> None:
+        self._task_name = task_name
+        self._task_id = uuid.uuid4().hex
+        self._task_data = task_data
 
-    def run(self) -> None:
+    @property
+    def task_id(self):
+        return self._task_id
+
+    @property
+    def task_json(self):
+        return {"name": self._task_name, "data": self._task_data}
+
+    def run(self, pipeline: "Pipeline") -> None:
         raise NotImplementedError()
 
 
 class DefaultPipelineStep(PipelineStep, module_name="*"):
-    def run(self):
-        if self._pipeline.running:
-            return
-
-        self._pipeline.running = True
-        self._pipeline.run_remote_modules()
+    def run(self, pipeline: "Pipeline") -> None:
+        pipeline.run_remote_module(self.task_id)
 
 
-class FilePushPipelineStep(PipelineStep, module_name="file-push"):
-    def run(self):
-        self._pipeline.running = True
-        self._pipeline.run_remote_modules()
+# class FilePushPipelineStep(PipelineStep, module_name="file-push"):
+#     def run(self, pipeline: "Pipeline") -> None:
+#         pipeline.run_remote_module(self.task_id)
 
 
 class Pipeline:
@@ -60,11 +70,9 @@ class Pipeline:
 
     def __init__(self, data: dict[str, Any]) -> None:
         self.prepared = False
-        self.running = False
         self._executor_dir = None
-        self.steps: list[PipelineStep] = []
 
-        self._data = data
+        self._steps: list[PipelineStep] = self._create_steps(data["tasks"])
         # TODO: Actually validate the provided data
         # TODO: Replace hardcoded vm host data
         # TODO: Add support for driver config val
@@ -74,15 +82,18 @@ class Pipeline:
         host_data = data["hosts"][self.target]
         self.ssh_ip = host_data["ip"]
         self.ssh_user = host_data["user"]
-        self.message_writer = CLIMessageWriter(user=self.ssh_user, target=self.ssh_ip)
+        self._message_writer = CLIMessageWriter(user=self.ssh_user, target=self.ssh_ip)
 
-        modules = [task["module"] for _, task in data["tasks"].items()]
-        for module_name in modules:
-            self.steps.append(
+    def _create_steps(self, tasks_data: dict[str, Any]) -> list[PipelineStep]:
+        steps: list[PipelineStep] = []
+        for name, data in tasks_data.items():
+            module_name = data["module"]
+            steps.append(
                 PIPELINE_MODULES_REGISTRY.get(
                     module_name, PIPELINE_MODULES_REGISTRY["*"]
-                )(self)
+                )(name, data)
             )
+        return steps
 
     def prepare(self):
         # TODO: Remote runner should only take required modules.
@@ -109,9 +120,10 @@ class Pipeline:
             tmp_executor_path = pathlib.Path(tmpdirpath) / "executor.py"
             shutil.copyfile(executor_path, tmp_executor_path)
 
-            tmp_tasks_path = pathlib.Path(tmpdirpath) / "tasks.json"
-            with open(tmp_tasks_path, "w") as tasks_file:
-                json.dump(self._data["tasks"], tasks_file)
+            for step in self._steps:
+                tmp_task_path = pathlib.Path(tmpdirpath) / f"task-{step.task_id}.json"
+                with open(tmp_task_path, "w") as task_file:
+                    json.dump(step.task_json, task_file)
 
             # TO THE STARS!
             # TODO: Part of the transport
@@ -137,18 +149,19 @@ class Pipeline:
         if not self._prepared:
             raise RuntimeError("pipeline is not prepared")
 
-        for pipeline_step in self.steps:
-            pipeline_step.run()
+        for pipeline_step in self._steps:
+            pipeline_step.run(self)
 
-    def run_remote_modules(self):
+    def run_remote_module(self, task_id: str) -> None:
         # TODO: Rename this method - modules won't always run on remote.
         # TODO: Impl a dedicated ssh Transport class
         # TODO: Replace subprocess calls
         runner_ssh_cmd = (
             f"ssh {' '.join(SSH_OPTIONS)} -qt {self.ssh_user}@{self.ssh_ip} "
-            f"python3 {self._executor_dir}/executor.py"
+            f"python3 {self._executor_dir}/executor.py {task_id}"
         )
         results = subprocess.run(runner_ssh_cmd.split(), capture_output=True, text=True)
+        # TODO: many messages per one task
         for message in results.stdout.splitlines():
             message_data = json.loads(message)
-            self.message_writer.print(message_data)
+            self._message_writer.print(message_data)

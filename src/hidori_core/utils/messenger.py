@@ -4,13 +4,10 @@ from typing import List
 
 
 class Messenger:
-    def __init__(self) -> None:
+    def __init__(self, task_name: str) -> None:
         # TODO: probably going to run single task so bring back task to inits
-        self._task: str = ""
+        self._task: str = task_name
         self._messages: List[str] = []
-
-    def set_task(self, task: str) -> None:
-        self._task = task
 
     def queue(self, ty: str, time: str, message: str) -> None:
         self._messages.append(

@@ -1,16 +1,16 @@
 import json
 import pathlib
+import sys
 
 from hidori_core.modules import MODULES_REGISTRY
 from hidori_core.utils import Messenger
 
-RETURN_TO_INITIATOR_MODULES = ["file-push"]
-
 
 def main():
-    tasks_path = pathlib.Path(__file__).parent / "tasks.json"
-    with open(tasks_path) as tasks_file:
-        data = json.load(tasks_file)
+    task_id = sys.argv[1]
+    task_path = pathlib.Path(__file__).parent / f"task-{task_id}.json"
+    with open(task_path) as task_file:
+        data = json.load(task_file)
 
     # TODO: Add pre-flight env detection and verification
     # python >= 3.9
@@ -18,27 +18,13 @@ def main():
     # systemd
     # broaden access and lower reqs
 
-    savefile_path = pathlib.Path(__file__).parent / ".savefile"
-    starting_step = 0
-    if savefile_path.exists():
-        with savefile_path.open() as f:
-            starting_step = int(f.read())
+    task_name = data["name"]
+    task_data = data["data"]
 
-    messenger = Messenger()
-    for (step, (task, task_data)) in enumerate(data.items()):
-        if step < starting_step:
-            continue
-
-        if step > starting_step:
-            if task_data["module"] in RETURN_TO_INITIATOR_MODULES:
-                with savefile_path.open("w") as f:
-                    f.write(str(step))
-                return
-
-        messenger.set_task(task)
-        module = MODULES_REGISTRY[task_data["module"]]
-        module.validate_and_execute(task_data, messenger)
-        messenger.flush()
+    messenger = Messenger(task_name)
+    module = MODULES_REGISTRY[task_data["module"]]
+    module.validate_and_execute(task_data, messenger)
+    messenger.flush()
 
     # TODO: Summary of failed, affected and unaffected tasks
 
