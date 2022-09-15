@@ -9,6 +9,7 @@ import tomllib
 
 import hidori_core
 import hidori_runner
+from hidori_common import CLIMessageWriter
 
 SSH_OPTIONS = [
     "-o ControlMaster=auto",
@@ -17,24 +18,6 @@ SSH_OPTIONS = [
 ]
 
 PIPELINE_MODULES_REGISTRY: dict[str, type["PipelineStep"]] = {}
-
-# TODO: This shouldn't be part of pipelines
-# (future base cmd is going to need it as well)
-
-
-class Colors:
-    RED = "\033[31m"
-    GREEN = "\033[32m"
-    BLUE = "\033[34m"
-    RESET = "\033[39m"
-
-
-class Modifiers:
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
-
-
-# TODO: Pipelines don't belong in hidori_core
 
 
 class PipelineStep:
@@ -91,6 +74,7 @@ class Pipeline:
         host_data = data["hosts"][self.target]
         self.ssh_ip = host_data["ip"]
         self.ssh_user = host_data["user"]
+        self.message_writer = CLIMessageWriter(user=self.ssh_user, target=self.ssh_ip)
 
         modules = [task["module"] for _, task in data["tasks"].items()]
         for module_name in modules:
@@ -166,26 +150,5 @@ class Pipeline:
         )
         results = subprocess.run(runner_ssh_cmd.split(), capture_output=True, text=True)
         for message in results.stdout.splitlines():
-            self._print_result_message(message)
-
-    def _print_result_message(self, message: str) -> None:
-        color_map = {
-            "success": Colors.GREEN,
-            "error": Colors.RED,
-            "affected": Colors.BLUE,
-        }
-
-        data = json.loads(message)
-        print(
-            f"{Modifiers.BOLD}[{self.ssh_user}@{self.target}: "
-            f"{data['task']}]{Modifiers.RESET}"
-        )
-
-        color = color_map.get(data["type"], "")
-        print(
-            f"[{data['time']}] {Modifiers.BOLD}{color}{data['type'].upper()}:", end=""
-        )
-        if color:
-            print(f"{Colors.RESET}", end="")
-        print(f"{Modifiers.RESET} {data['message']}")
-        print()
+            message_data = json.loads(message)
+            self.message_writer.print(message_data)
