@@ -5,6 +5,7 @@ description = ""
 authors = ["Piotr Szpetkowski <piotr.szpetkowski@pyquest.space>"]
 readme = "README.md"
 packages = [
+    { include = "hidori_common", from = "src" },
     { include = "hidori_core", from = "src" },
     { include = "hidori_runner", from = "src" },
     { include = "hidori_pipelines", from = "src" },
