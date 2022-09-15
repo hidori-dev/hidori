@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from hidori_cli.commands.base import BaseData, Command
-from hidori_core.pipeline import Pipeline
+from hidori_pipelines import Pipeline
 
 
 @dataclass
