@@ -5,7 +5,6 @@ from typing import List
 
 class Messenger:
     def __init__(self, task_name: str) -> None:
-        # TODO: probably going to run single task so bring back task to inits
         self._task: str = task_name
         self._messages: List[str] = []
 
