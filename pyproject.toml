@@ -3,7 +3,9 @@ name = "hidori"
 version = "0.2.0.dev0"
 description = ""
 authors = ["Piotr Szpetkowski <piotr.szpetkowski@pyquest.space>"]
+license = "MIT"
 readme = "README.md"
+
 packages = [
     { include = "hidori_common", from = "src" },
     { include = "hidori_core", from = "src" },
@@ -11,6 +13,22 @@ packages = [
     { include = "hidori_pipelines", from = "src" },
     { include = "hidori_cli", from = "src" },
 ]
+
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: System :: Installation/Setup",
+]
+
+repository = "https://github.com/hidori-dev/hidori"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/hidori-dev/hidori/issues"
+"Changelog" = "https://github.com/hidori-dev/hidori/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
