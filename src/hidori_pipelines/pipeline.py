@@ -162,6 +162,5 @@ class Pipeline:
         )
         results = subprocess.run(runner_ssh_cmd.split(), capture_output=True, text=True)
         # TODO: many messages per one task
-        for message in results.stdout.splitlines():
-            message_data = json.loads(message)
-            self._message_writer.print(message_data)
+        messages_data = [json.loads(message) for message in results.stdout.splitlines()]
+        self._message_writer.print_all(messages_data)
