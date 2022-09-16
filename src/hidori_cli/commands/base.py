@@ -26,8 +26,10 @@ class Command(Generic[TD]):
         app_name = f"hidori-{app_name.lower()}"
         cmd_name = cmd_name.lower()
 
-        if cmd_name in COMMAND_REGISTRY:
-            raise RuntimeError()
+        if cmd_name in COMMAND_REGISTRY[app_name]:
+            raise RuntimeError(
+                f"command {cmd_name} is already defined for app {app_name}"
+            )
         cls.name = cmd_name
         COMMAND_REGISTRY[app_name][cmd_name] = cls
 
