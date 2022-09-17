@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from hidori_cli.commands.base import BaseData, Command
-from hidori_pipelines import Pipeline
+from hidori_pipelines import PipelineGroup
 
 
 @dataclass
@@ -16,6 +16,7 @@ class PipelineRunCommand(Command[PipelineRunData]):
     data_cls = PipelineRunData
 
     def execute(self, data: PipelineRunData) -> None:
-        pipeline = Pipeline.from_toml_path(data.pipeline_file)
-        pipeline.prepare()
-        pipeline.run()
+        group = PipelineGroup.from_toml_path(data.pipeline_file)
+        for pipeline in group:
+            pipeline.prepare()
+            pipeline.run()

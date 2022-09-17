@@ -31,6 +31,7 @@ class HostnameModule(Module, name="hostname", schema_cls=HostnameSchema):
             messenger.queue_success(f"hostname already set to {new_hostname}")
             return {"state": "unaffected"}
 
+        # TODO: can only do that with escalated privileges
         hostname_iface = dbus.Interface(hostnamed_proxy, "org.freedesktop.hostname1")
         hostname_iface.SetStaticHostname(new_hostname, False)
 

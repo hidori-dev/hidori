@@ -6,8 +6,6 @@ import tempfile
 import uuid
 from typing import Any
 
-import tomllib
-
 import hidori_core
 import hidori_runner
 from hidori_common import CLIMessageWriter
@@ -38,6 +36,10 @@ class PipelineStep:
         self._task_id = uuid.uuid4().hex
         self._task_data = task_data
 
+        module_name = task_data["module"]
+        if module_name not in MODULES_REGISTRY:
+            raise RuntimeError(f"{module_name} module does not exist.")
+
     @property
     def task_id(self):
         return self._task_id
@@ -61,28 +63,18 @@ class DefaultPipelineStep(PipelineStep, module_name="*"):
 
 
 class Pipeline:
-    @classmethod
-    def from_toml_path(cls, path: str) -> "Pipeline":
-        with open(path, "rb") as f:
-            data = tomllib.load(f)
-
-        return Pipeline(data)
-
-    def __init__(self, data: dict[str, Any]) -> None:
+    def __init__(self, host_data: dict[str, Any], tasks_data: dict[str, Any]) -> None:
         self.prepared = False
         self._executor_dir = None
 
-        self._steps: list[PipelineStep] = self._create_steps(data["tasks"])
-        # TODO: Actually validate the provided data
-        # TODO: Replace hardcoded vm host data
+        self._steps: list[PipelineStep] = self._create_steps(tasks_data)
         # TODO: Add support for driver config val
         # TODO: Add support for remote_path config val
         # TODO: Extract driver-specific code to the drivers
-        self.target = "vm"
-        host_data = data["hosts"][self.target]
-        self.ssh_ip = host_data["ip"]
-        self.ssh_user = host_data["user"]
-        self._message_writer = CLIMessageWriter(user=self.ssh_user, target=self.ssh_ip)
+        self.target = host_data["target"]
+        self.ssh_ip = host_data["data"]["ip"]
+        self.ssh_user = host_data["data"]["user"]
+        self._message_writer = CLIMessageWriter(user=self.ssh_user, target=self.target)
 
     def _create_steps(self, tasks_data: dict[str, Any]) -> list[PipelineStep]:
         steps: list[PipelineStep] = []

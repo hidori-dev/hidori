@@ -1,3 +1,3 @@
-from hidori_pipelines.pipeline import Pipeline
+from hidori_pipelines.group import PipelineGroup
 
-__all__ = ["Pipeline"]
+__all__ = ["PipelineGroup"]
