@@ -1,3 +1,6 @@
+import datetime
+
+
 class Colors:
     RED = "\033[31m"
     GREEN = "\033[32m"
@@ -32,23 +35,28 @@ class CLIMessageWriter:
 
     def print_one(self, data: dict[str, str]) -> None:
         self._print_header(data["task"])
-        self._print_entry(data["time"], data["type"], data["message"])
+        self._print_entry(data["type"], data["message"])
 
     def print_all(self, data: list[dict[str, str]]) -> None:
         # TODO: Isn't it too naive?
         self._print_header(data[0]["task"])
         for entry_data in data:
-            self._print_entry(
-                entry_data["time"], entry_data["type"], entry_data["message"]
-            )
+            self._print_entry(entry_data["type"], entry_data["message"])
+
+    def print_summary(self) -> None:
+        print()
 
     def _print_header(self, task: str) -> None:
         print(f"{Modifiers.BOLD}[{self.user}@{self.target}: {task}]{Modifiers.RESET}")
 
-    def _print_entry(self, time: str, message_type: str, message: str) -> None:
+    def _print_entry(self, message_type: str, message: str) -> None:
+        curr_time = self._get_current_time()
         color = COLOR_MAP[message_type]
         status = STATUS_MAP[message_type]
         print(
-            f"[{time}] {Modifiers.BOLD}{color}{status}:"
+            f"[{curr_time}] {Modifiers.BOLD}{color}{status}:"
             f"{Colors.RESET if color else ''}{Modifiers.RESET} {message}"
         )
+
+    def _get_current_time(self) -> str:
+        return datetime.datetime.now().strftime("%H:%M:%S")

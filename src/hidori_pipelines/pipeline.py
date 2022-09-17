@@ -144,6 +144,8 @@ class Pipeline:
         for pipeline_step in self._steps:
             pipeline_step.run(self)
 
+        self._message_writer.print_summary()
+
     def run_remote_module(self, task_id: str) -> None:
         # TODO: Rename this method - modules won't always run on remote.
         # TODO: Impl a dedicated ssh Transport class
