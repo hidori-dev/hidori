@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.0-rc.2'
+          cache: 'poetry'
+
+      - name: Use python 3.11 for poetry
+        run: poetry env use 3.11
+
+      - name: Install dependencies
+        run: poetry install
