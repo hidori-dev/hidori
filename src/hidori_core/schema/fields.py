@@ -14,6 +14,13 @@ class Text(Field):
     def __init__(self, required: bool) -> None:
         self.required = required
 
+    def validate(self, value: Optional[Any]) -> str:
+        super().validate(value)
+        if not isinstance(value, str):
+            raise ValidationError(f"value `{value}` not allowed; is not str")
+
+        return value
+
 
 class OneOf(Field):
     @classmethod
