@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional
 
 from hidori_core.schema.base import Constraint, Schema
 from hidori_core.schema.errors import ConstraintError
@@ -25,7 +25,7 @@ class RequiresConstraint(Constraint):
                 "might be required but are undefined"
             )
 
-    def apply(self, schema: Type[Schema], data: Dict[str, Any]) -> None:
+    def apply(self, schema: Schema, data: Dict[str, Any]) -> None:
         # TODO: data_conditions should likely move to the Constraint base cls
         for condition in self.data_conditions:
             if not condition(data):

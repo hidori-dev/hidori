@@ -37,7 +37,7 @@ class Constraint:
     def process_schema(self, annotations: Dict[str, Any]) -> None:
         ...
 
-    def apply(self, schema: Type["Schema"], data: Dict[str, Any]) -> None:
+    def apply(self, schema: "Schema", data: Dict[str, Any]) -> None:
         ...
 
 
@@ -66,18 +66,20 @@ class Schema:
         if errors:
             raise SchemaError(errors)
 
-    @classmethod
-    def validate(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
         validated_data: Dict[str, Any] = {}
         errors = {}
 
-        for name, field in cls.fields.items():
-            constraint = getattr(cls, name, None)
+        for name, field in self.fields.items():
+            constraint = getattr(self, name, None)
             if constraint and isinstance(constraint, Constraint):
-                constraint.apply(cls, data)
+                constraint.apply(self, data)
 
             try:
-                validated_data[name] = field.validate(data.get(name))
+                # TODO: No such field provided in data
+                field_data = data.get(name)
+                field.validate(field_data)
+                validated_data[name] = field_data
             except ValidationError as e:
                 errors[name] = str(e)
                 continue
