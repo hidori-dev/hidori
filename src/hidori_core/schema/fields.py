@@ -22,8 +22,8 @@ class OneOf(Field):
     ) -> Optional["OneOf"]:
         if annotation.__origin__ == Literal:
             return cls(annotation.__args__, required)
-
-        return None
+        else:
+            return None
 
     def __init__(self, values: Tuple[Any], required: bool) -> None:
         self.allowed_values = values
