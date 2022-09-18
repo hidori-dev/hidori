@@ -42,9 +42,8 @@ class OneOf(Field):
         if value in self.allowed_values:
             return value
         else:
-            allowed_values = ", ".join(self.allowed_values)
             raise ValidationError(
-                f"value `{value}` not allowed; allowed values are `{allowed_values}`"
+                f"value `{value}` not allowed; allowed values are {self.allowed_values}"
             )
 
 
