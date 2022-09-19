@@ -73,3 +73,7 @@ poetry install
 
 [^1]: Except for the necessary runtime - python, and system libraries that are used by modules
 [^2]: typing-extensions are necessary until at least July 2023 when Python 3.7's support will end
+
+## License
+
+Hidori is licensed under both the [MIT](LICENSE-MIT) and the [EUPL-1.2](LICENSE-EUPL) licenses.
