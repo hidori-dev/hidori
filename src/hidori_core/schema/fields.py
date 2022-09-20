@@ -10,6 +10,17 @@ from hidori_core.schema.base import (
 )
 
 
+class Anything(Field):
+    @classmethod
+    def from_annotation(
+        cls, annotation: Any, required: bool = True
+    ) -> Optional["Anything"]:
+        return cls(required) if annotation == Any else None
+
+    def __init__(self, required: bool) -> None:
+        self.required = required
+
+
 class Text(Field):
     @classmethod
     def from_annotation(
