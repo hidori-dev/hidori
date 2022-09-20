@@ -15,7 +15,7 @@ Initial release that contains proof-of-concept implementation.
 - hidori_core: PoC implementation of dnf module
 - hidori_core: PoC implementation of hostname module
 - hidori_core: simple messenger that provides colored output
-- hidori_runner: remote executor that is capable of running modules 
+- hidori_runner: remote executor that is capable of running modules
 
 [Unreleased]: https://github.com/hidori-dev/hidori/compare/0.1.0...HEAD
 [0.1.0]: https://github.com/hidori-dev/hidori/releases/tag/0.1.0
