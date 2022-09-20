@@ -1,7 +1,13 @@
-from typing import Any, Dict, Optional, Tuple
+import inspect
+from typing import Any, Dict, Optional, Tuple, Type
 
 from hidori_core.compat.typing import Literal
-from hidori_core.schema.base import Field, ValidationError, field_from_annotation
+from hidori_core.schema.base import (
+    Field,
+    Schema,
+    ValidationError,
+    field_from_annotation,
+)
 
 
 class Text(Field):
@@ -27,7 +33,7 @@ class OneOf(Field):
     def from_annotation(
         cls, annotation: Any, required: bool = True
     ) -> Optional["OneOf"]:
-        if annotation.__origin__ == Literal:
+        if getattr(annotation, "__origin__", None) == Literal:
             return cls(annotation.__args__, required)
         else:
             return None
@@ -47,12 +53,35 @@ class OneOf(Field):
             )
 
 
+class SubSchema(Field):
+    @classmethod
+    def from_annotation(
+        cls, annotation: Any, required: bool = True
+    ) -> Optional["SubSchema"]:
+        if inspect.isclass(annotation) and issubclass(annotation, Schema):
+            return cls(annotation, required)
+        else:
+            return None
+
+    def __init__(self, schema_cls: Type[Schema], required: bool) -> None:
+        self.schema = schema_cls()
+        self.required = required
+
+    def validate(self, value: Optional[Any]) -> Optional[Any]:
+        super().validate(value)
+        if not isinstance(value, dict):
+            raise ValidationError(f"value `{value}` not allowed; is not dict")
+
+        self.schema.validate(value)
+        return value
+
+
 class Dictionary(Field):
     @classmethod
     def from_annotation(
         cls, annotation: Any, required: bool = True
     ) -> Optional["Dictionary"]:
-        if annotation.__origin__ == dict:
+        if getattr(annotation, "__origin__", None) == dict:
             return cls(annotation.__args__, required)
         else:
             return None
