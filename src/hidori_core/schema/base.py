@@ -24,13 +24,11 @@ class Field:
     ) -> Optional[TField]:
         ...
 
-    def validate(self, value: Optional[Any]) -> Optional[Any]:
+    def validate(self, value: Optional[Any]) -> None:
         if self.required and not value:
             raise ValidationError("value for required field not provided")
         elif self.required is False and not value:
             raise SkipFieldError()
-        else:
-            return value
 
 
 class Constraint:

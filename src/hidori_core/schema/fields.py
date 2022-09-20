@@ -31,12 +31,10 @@ class Text(Field):
     def __init__(self, required: bool) -> None:
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> str:
+    def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
         if not isinstance(value, str):
             raise ValidationError(f"value `{value}` not allowed; is not str")
-
-        return value
 
 
 class OneOf(Field):
@@ -53,12 +51,9 @@ class OneOf(Field):
         self.allowed_values = values
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> Optional[Any]:
+    def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
-
-        if value in self.allowed_values:
-            return value
-        else:
+        if value not in self.allowed_values:
             raise ValidationError(
                 f"value `{value}` not allowed; allowed values are {self.allowed_values}"
             )
@@ -78,13 +73,12 @@ class SubSchema(Field):
         self.schema = schema_cls()
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> Optional[Any]:
+    def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
         if not isinstance(value, dict):
             raise ValidationError(f"value `{value}` not allowed; is not dict")
 
         self.schema.validate(value)
-        return value
 
 
 class Dictionary(Field):
@@ -103,12 +97,12 @@ class Dictionary(Field):
         self.val_field = field_from_annotation(val_type)
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> Dict[Any, Any]:
+    def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
         if not isinstance(value, dict):
             raise ValidationError(f"value `{value}` not allowed; is not dict")
 
-        return self._validate_items(value)
+        self._validate_items(value)
 
     def _validate_items(self, value: Dict[Any, Any]) -> Dict[Any, Any]:
         for key, val in value.items():
