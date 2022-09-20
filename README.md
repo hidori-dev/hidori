@@ -2,7 +2,6 @@
 
 [![PyPI](https://img.shields.io/pypi/v/hidori)](https://pypi.org/project/hidori/)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/hidori-dev/hidori/main.svg)](https://results.pre-commit.ci/latest/github/hidori-dev/hidori/main)
-[![License](https://img.shields.io/github/license/hidori-dev/hidori)](https://github.com/hidori-dev/hidori)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/hidori-dev/hidori)
 
 Hidori is a modern, agentless, zero-dependency[^1][^2] variation on updating system state. General rule of thumb is that changes to the system are only done if the requested state is different from the actual state. Hidori modules are idempotent if the system is already in the desired state.
