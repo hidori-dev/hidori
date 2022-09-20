@@ -2,7 +2,18 @@ from typing import Any, Iterable, Iterator
 
 import tomllib
 
+from hidori_core.schema import Schema
 from hidori_pipelines.pipeline import Pipeline
+
+
+class TargetSchema(Schema):
+    ip: str
+    user: str
+
+
+class PipelineSchema(Schema):
+    hosts: dict[str, TargetSchema]
+    tasks: dict[str, dict[str, Any]]
 
 
 class PipelineGroup(Iterable[Pipeline]):
@@ -12,7 +23,9 @@ class PipelineGroup(Iterable[Pipeline]):
             return cls(tomllib.load(f))
 
     def __init__(self, data: dict[str, Any]) -> None:
-        # TODO: validate the provided data with help of schema
+        schema = PipelineSchema()
+        schema.validate(data)
+
         self._hosts_data = [
             {"target": host, "data": data} for host, data in data["hosts"].items()
         ]
