@@ -155,6 +155,11 @@ class Pipeline:
             f"python3 {self._executor_dir}/executor.py {task_id}"
         )
         results = subprocess.run(runner_ssh_cmd.split(), capture_output=True, text=True)
-        # TODO: many messages per one task
-        messages_data = [json.loads(message) for message in results.stdout.splitlines()]
+        messages_data = []
+        for message in results.stdout.splitlines():
+            try:
+                messages_data.append(json.loads(message))
+            except json.JSONDecodeError:
+                # TODO: For now let's just ignore stdout that is not JSON
+                continue
         self._message_writer.print_all(messages_data)
