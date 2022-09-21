@@ -45,6 +45,9 @@ twine = "^4.0.1"
 [tool.poetry.scripts]
 hidori-pipeline = "hidori_cli.apps.pipeline:main"
 
+[tool.pyright]
+include = ["src"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
