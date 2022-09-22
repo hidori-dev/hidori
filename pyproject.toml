@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "hidori"
 version = "0.2.0.dev0"
-description = ""
+description = "A modern, agentless, zero-dependency system state assurance"
 authors = ["Piotr Szpetkowski <piotr.szpetkowski@pyquest.space>"]
 license = "MIT"
 readme = "README.md"
@@ -19,6 +19,7 @@ classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: System :: Installation/Setup",
