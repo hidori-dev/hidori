@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hidori"
-version = "0.2.0.dev0"
+version = "0.2.0"
 description = "A modern, agentless, zero-dependency system state assurance"
 authors = ["Piotr Szpetkowski <piotr.szpetkowski@pyquest.space>"]
 license = "MIT"
