@@ -155,7 +155,7 @@ class Pipeline:
             f"python3 {self._executor_dir}/executor.py {task_id}"
         )
         results = subprocess.run(runner_ssh_cmd.split(), capture_output=True, text=True)
-        messages_data = []
+        messages_data: list[dict[str, Any]] = []
         for message in results.stdout.splitlines():
             try:
                 messages_data.append(json.loads(message))
