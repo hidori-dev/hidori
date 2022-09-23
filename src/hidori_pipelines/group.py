@@ -1,5 +1,6 @@
 from typing import Any, Iterable, Iterator
 
+# TODO: Remove this type ignore when pre-commit.ci is updated to py3.11
 import tomllib  # type: ignore
 
 from hidori_core.schema import Schema
