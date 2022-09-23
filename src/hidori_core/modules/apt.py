@@ -29,12 +29,13 @@ class AptSchema(Schema):
 
 class AptModule(Module, name="apt", schema_cls=AptSchema):
     def execute(
-        self, validated_data: Dict[str, Any], messenger: Messenger
+        self, validated_data: Dict[str, Optional[str]], messenger: Messenger
     ) -> Dict[str, str]:
+        assert apt
         cache = apt.Cache(apt.progress.text.OpProgress(io.StringIO()))
         package_name = validated_data.get("package")
 
-        if validated_data["state"] == APT_STATE_INSTALLED:
+        if validated_data["state"] == APT_STATE_INSTALLED and package_name:
             apt_pkg = cache[package_name]
             if apt_pkg.is_installed:
                 messenger.queue_success(f"package {package_name} is already installed")
@@ -49,7 +50,7 @@ class AptModule(Module, name="apt", schema_cls=AptSchema):
             messenger.queue_affected(f"package {package_name} has been installed")
             return {"state": "affected"}
 
-        if validated_data["state"] == APT_STATE_REMOVED:
+        if validated_data["state"] == APT_STATE_REMOVED and package_name:
             apt_pkg = cache[package_name]
             if not apt_pkg.is_installed:
                 messenger.queue_success(f"package {package_name} is not installed")
