@@ -46,6 +46,11 @@ twine = "^4.0.1"
 [tool.poetry.scripts]
 hidori-pipeline = "hidori_cli.apps.pipeline:main"
 
+[tool.mypy]
+files = ["src"]
+mypy_path = "stubs"
+strict = true
+
 [tool.pyright]
 include = ["src"]
 stubPath = "stubs"
