@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 try:
     import dnf
 except ImportError:
-    dnf = None
+    ...
 
 from hidori_core.compat.typing import Literal
 from hidori_core.modules.base import Module
@@ -31,6 +31,7 @@ class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
         self, validated_data: Dict[str, Optional[str]], messenger: Messenger
     ) -> Dict[str, str]:
         assert dnf
+
         base = dnf.Base()
         base.read_all_repos()
         base.fill_sack()

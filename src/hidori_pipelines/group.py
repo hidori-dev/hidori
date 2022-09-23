@@ -1,6 +1,6 @@
 from typing import Any, Iterable, Iterator
 
-import tomllib
+import tomllib  # type: ignore
 
 from hidori_core.schema import Schema
 from hidori_pipelines.pipeline import Pipeline
@@ -18,7 +18,7 @@ class PipelineSchema(Schema):
 
 class PipelineGroup(Iterable[Pipeline]):
     @classmethod
-    def from_toml_path(cls, path: str):
+    def from_toml_path(cls, path: str) -> "PipelineGroup":
         with open(path, "rb") as f:
             return cls(tomllib.load(f))
 

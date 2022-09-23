@@ -11,7 +11,9 @@ class HelloSchema(Schema):
 
 
 class HelloModule(Module, name="hello", schema_cls=HelloSchema):
-    def execute(self, validated_data: Dict[str, object], messenger: Messenger):
+    def execute(
+        self, validated_data: Dict[str, object], messenger: Messenger
+    ) -> Dict[str, str]:
         uname_result = os.uname()
         messenger.queue_success(
             f"Hello from {uname_result.sysname} {uname_result.nodename} "

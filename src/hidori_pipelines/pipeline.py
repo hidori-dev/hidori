@@ -41,11 +41,11 @@ class PipelineStep:
             raise RuntimeError(f"{module_name} module does not exist.")
 
     @property
-    def task_id(self):
+    def task_id(self) -> str:
         return self._task_id
 
     @property
-    def task_json(self):
+    def task_json(self) -> dict[str, Any]:
         return {"name": self._task_name, "data": self._task_data}
 
     def run(self, pipeline: "Pipeline") -> None:
@@ -65,7 +65,7 @@ class DefaultPipelineStep(PipelineStep, module_name="*"):
 class Pipeline:
     def __init__(self, host_data: dict[str, Any], tasks_data: dict[str, Any]) -> None:
         self.prepared = False
-        self._executor_dir = None
+        self._executor_dir = ""
 
         self._steps: list[PipelineStep] = self._create_steps(tasks_data)
         # TODO: Add support for driver config val
@@ -87,7 +87,7 @@ class Pipeline:
             )
         return steps
 
-    def prepare(self):
+    def prepare(self) -> None:
         # TODO: Remote runner should only take required modules.
         # Use MODULES_REGISTRY and self.modules for that
         # It will also allow third parties to define their own modules.
@@ -137,7 +137,7 @@ class Pipeline:
             str(core_package_path), str(tmp_core_package_path), dirs_exist_ok=True
         )
 
-    def run(self):
+    def run(self) -> None:
         if not self._prepared:
             raise RuntimeError("pipeline is not prepared")
 

@@ -6,7 +6,7 @@ from hidori_core.modules import MODULES_REGISTRY
 from hidori_core.utils import Messenger
 
 
-def main():
+def main() -> None:
     task_id = sys.argv[1]
     task_path = pathlib.Path(__file__).parent / f"task-{task_id}.json"
     with open(task_path) as task_file:

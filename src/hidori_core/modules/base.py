@@ -1,3 +1,5 @@
+import importlib
+from types import ModuleType
 from typing import Any, Dict, Type
 
 from hidori_core.schema.base import Schema
@@ -35,3 +37,6 @@ class Module:
         self, validated_data: Dict[str, Any], messenger: Messenger
     ) -> Dict[str, str]:
         raise NotImplementedError()
+
+    def load_module(self, module_name: str) -> ModuleType:
+        return importlib.import_module(module_name)

@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 try:
     import apt
 except ImportError:
-    apt = None
+    ...
 
 from hidori_core.compat.typing import Literal
 from hidori_core.modules.base import Module
@@ -32,6 +32,7 @@ class AptModule(Module, name="apt", schema_cls=AptSchema):
         self, validated_data: Dict[str, Optional[str]], messenger: Messenger
     ) -> Dict[str, str]:
         assert apt
+
         cache = apt.Cache(apt.progress.text.OpProgress(io.StringIO()))
         package_name = validated_data.get("package")
 

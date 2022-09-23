@@ -30,6 +30,6 @@ class Messenger:
     def queue_info(self, message: str) -> None:
         self.queue(ty="info", message=message)
 
-    def flush(self):
+    def flush(self) -> None:
         while self._messages:
             print(self._messages.pop(0))

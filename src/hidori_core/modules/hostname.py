@@ -3,7 +3,7 @@ from typing import Dict
 try:
     import dbus
 except ImportError:
-    dbus = None
+    ...
 
 from hidori_core.modules.base import Module
 from hidori_core.schema import Schema
@@ -18,7 +18,7 @@ class HostnameModule(Module, name="hostname", schema_cls=HostnameSchema):
     def execute(
         self, validated_data: Dict[str, str], messenger: Messenger
     ) -> Dict[str, str]:
-        new_hostname = validated_data["name"]
+        assert dbus
 
         sysbus = dbus.SystemBus()
         hostnamed_proxy = sysbus.get_object(
@@ -27,6 +27,7 @@ class HostnameModule(Module, name="hostname", schema_cls=HostnameSchema):
 
         dbus_iface = dbus.Interface(hostnamed_proxy, "org.freedesktop.DBus.Properties")
         old_hostname = dbus_iface.Get("org.freedesktop.hostname1", "StaticHostname")
+        new_hostname = validated_data["name"]
         if old_hostname == new_hostname:
             messenger.queue_success(f"hostname already set to {new_hostname}")
             return {"state": "unaffected"}

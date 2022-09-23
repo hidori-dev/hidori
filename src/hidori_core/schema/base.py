@@ -43,7 +43,7 @@ class Schema:
     # TODO: Add support for sub-schemas (especially for PipelineSchema)
     fields: Dict[str, Field]
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.fields = {}
         errors = {}
 
