@@ -48,6 +48,10 @@ hidori-pipeline = "hidori_cli.apps.pipeline:main"
 
 [tool.pyright]
 include = ["src"]
+stubPath = "stubs"
+
+# This is actually very likely to happen
+reportMissingModuleSource = false
 
 [build-system]
 requires = ["poetry-core"]
