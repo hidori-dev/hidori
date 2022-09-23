@@ -28,23 +28,24 @@ class DnfSchema(Schema):
 
 class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
     def execute(
-        self, validated_data: Dict[str, Any], messenger: Messenger
+        self, validated_data: Dict[str, Optional[str]], messenger: Messenger
     ) -> Dict[str, str]:
+        assert dnf
         base = dnf.Base()
         base.read_all_repos()
         base.fill_sack()
         package_name = validated_data.get("package")
 
-        if validated_data["state"] == "installed":
+        if validated_data["state"] == "installed" and package_name:
             # TODO: Only allow package to be a list and name it packages
             # TODO: Verify that package exists in repos
             # TODO: Allow to provide version with `package:version` or
             # `package:latest` notation
-            installed_query = base.sack.query().installed()
-            if installed_query.filter(name=package_name):
+            if base.sack.query().installed().filter(name=package_name).run():
                 messenger.queue_success(f"package {package_name} is already installed")
                 return {"state": "unaffected"}
 
+            # TODO: Handle package not existing (dnf.exceptions.PackageNotFoundError)
             base.install(package_name)
             base.resolve()
             base.download_packages(base.transaction.install_set)
