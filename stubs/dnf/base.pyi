@@ -1,6 +1,6 @@
 from .db.group import RPMTransaction
 from .sack import Sack
-from ..hawkey.package import Package
+from hawkey.package import Package
 
 class Base:
     sack: Sack
