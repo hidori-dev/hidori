@@ -9,6 +9,8 @@ Every change in the target system is reported through the modules log as "affect
 
 Hidori communicates with a target machine through appropriate protocol that is designated by the chosen driver.
 
+![Hidori demo](https://raw.githubusercontent.com/hidori-dev/hidori/main/assets/hidori_demo.gif)
+
 ## Install
 
 Depending on your environment you might wish to install Hidori globally or locally using chosen Python dependency manager such as poetry or pip.
