@@ -13,8 +13,6 @@ def main() -> None:
         data = json.load(task_file)
 
     # TODO: Add pre-flight env detection and verification
-    # python >= 3.9
-    # target python >= 3.7
     # systemd
     # broaden access and lower reqs
 

@@ -40,7 +40,6 @@ class Constraint:
 
 
 class Schema:
-    # TODO: Add support for sub-schemas (especially for PipelineSchema)
     fields: Dict[str, Field]
 
     def __init_subclass__(cls) -> None:
@@ -97,7 +96,6 @@ def field_from_annotation(annotation: Any, required: bool = True) -> Field:
             return field
 
     if annotation.__origin__ == Union:
-        # TODO: Impl unions other than Optional when necessary
         assert len(annotation.__args__) == 2
 
         required = False
@@ -107,5 +105,4 @@ def field_from_annotation(annotation: Any, required: bool = True) -> Field:
 
             return field_from_annotation(base_type, required)
 
-    # TODO: Finish impl for other cases
     raise RuntimeError("internal error")
