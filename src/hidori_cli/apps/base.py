@@ -2,7 +2,7 @@ import argparse
 import re
 
 from hidori_cli.commands import COMMAND_REGISTRY, Command
-from hidori_cli.commands.base import BaseData
+from hidori_cli.commands.base import BASE_COMMAND_NAME, BaseData
 
 
 class BaseCLIApplication:
@@ -16,15 +16,15 @@ class BaseCLIApplication:
     def _register_commands(self) -> None:
         subparsers = self.parser.add_subparsers(dest="subparser_name")
         for command_cls in COMMAND_REGISTRY[self.name].values():
-            subparser = subparsers.add_parser(
-                command_cls.name, help=command_cls.__doc__
+            parser_obj = (
+                self.parser
+                if command_cls.name == BASE_COMMAND_NAME
+                else subparsers.add_parser(command_cls.name, help=command_cls.__doc__)
             )
-            self._commands[command_cls.name] = command_cls(subparser)
+            self._commands[command_cls.name] = command_cls(parser_obj)
 
     def run(self) -> None:
         parser_data = self.parser.parse_args()
-        subparser_name: str = parser_data.subparser_name
-        command = self._commands[subparser_name]
-
-        data = command.data_cls(**parser_data.__dict__)
-        command.execute(data)
+        command_name: str = parser_data.subparser_name or BASE_COMMAND_NAME
+        command = self._commands[command_name]
+        command.run(parser_data.__dict__)

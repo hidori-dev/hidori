@@ -8,6 +8,7 @@ from typing import Any, Generic, TypeVar
 
 TD = TypeVar("TD", bound="BaseData")
 
+BASE_COMMAND_NAME = "base"
 COMMAND_REGISTRY: defaultdict[str, dict[str, type[Command[Any]]]] = defaultdict(dict)
 
 
@@ -19,10 +20,13 @@ class BaseData:
 class Command(Generic[TD]):
     name: str
     data_cls: type[TD]
-    backend_parse_content: bool = False
 
     def __init_subclass__(cls) -> None:
-        app_name, cmd_name, _ = re.findall(".[^A-Z]*", cls.__name__)
+        name_parts: list[str] = re.findall(".[^A-Z]*", cls.__name__)
+        if len(name_parts) == 2:
+            app_name, cmd_name = name_parts[0], BASE_COMMAND_NAME
+        else:
+            app_name, cmd_name = name_parts[0], name_parts[1]
         app_name = f"hidori-{app_name.lower()}"
         cmd_name = cmd_name.lower()
 
@@ -33,7 +37,7 @@ class Command(Generic[TD]):
         cls.name = cmd_name
         COMMAND_REGISTRY[app_name][cmd_name] = cls
 
-    def __init__(self, subparser: argparse.ArgumentParser) -> None:
+    def __init__(self, parser_obj: argparse.ArgumentParser) -> None:
         for field_name, field in self.data_cls.__dataclass_fields__.items():
             if field_name == "subparser_name":
                 continue
@@ -45,11 +49,18 @@ class Command(Generic[TD]):
                 kwargs["help"] = help_text
 
             if field.type in (bool, "bool"):
-                subparser.add_argument(f"--{field.name}", action="store_true", **kwargs)
+                parser_obj.add_argument(
+                    f"--{field.name}", action="store_true", **kwargs
+                )
 
             if field.type in (str, "str"):
                 name = field.name if is_positional else f"--{field_name}"
-                subparser.add_argument(name, type=str, **kwargs)
+                parser_obj.add_argument(name, type=str, **kwargs)
+
+    def run(self, parser_data: dict[str, Any]) -> None:
+        cmd_data = {k: parser_data[k] for k in self.data_cls.__dataclass_fields__}
+        data_obj = self.data_cls(**cmd_data)
+        self.execute(data_obj)
 
     def execute(self, data: TD) -> None:
         ...
