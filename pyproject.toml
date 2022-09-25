@@ -44,6 +44,7 @@ pre-commit = "^2.20.0"
 twine = "^4.0.1"
 
 [tool.poetry.scripts]
+hidori = "hidori_cli.apps.hidori:main"
 hidori-pipeline = "hidori_cli.apps.pipeline:main"
 
 [tool.mypy]
