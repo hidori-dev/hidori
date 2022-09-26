@@ -1,5 +1,3 @@
-import importlib
-from types import ModuleType
 from typing import Any, Dict, Type
 
 from hidori_core.schema.base import Schema
@@ -20,23 +18,13 @@ class Module:
     def __init__(self, schema_cls: Type[Schema]) -> None:
         self.schema = schema_cls()
 
-    def validate_and_execute(
-        self, task_data: Dict[str, Any], messenger: Messenger
-    ) -> Dict[str, str]:
+    def validate(self, task_data: Dict[str, Any], messenger: Messenger) -> None:
         try:
-            validated_data = self.schema.validate(task_data)
+            self.schema.validate(task_data)
         except SchemaError as e:
             module = task_data["module"]
             for field, error in e.errors.items():
                 messenger.queue_error(f"module::{module}, field::{field}: {error}")
-            return {"state": "error"}
 
-        return self.execute(validated_data, messenger)
-
-    def execute(
-        self, validated_data: Dict[str, Any], messenger: Messenger
-    ) -> Dict[str, str]:
+    def execute(self, validated_data: Dict[str, Any], messenger: Messenger) -> None:
         raise NotImplementedError()
-
-    def load_module(self, module_name: str) -> ModuleType:
-        return importlib.import_module(module_name)

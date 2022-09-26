@@ -64,7 +64,6 @@ class Schema:
             raise SchemaError(errors)
 
     def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        validated_data: Dict[str, Any] = {}
         errors = {}
 
         for name, field in self.fields.items():
@@ -76,7 +75,6 @@ class Schema:
                 # TODO: No such field provided in data
                 field_data = data.get(name)
                 field.validate(field_data)
-                validated_data[name] = field_data
             except ValidationError as e:
                 errors[name] = str(e)
                 continue
@@ -86,7 +84,7 @@ class Schema:
         if errors:
             raise SchemaError(errors)
 
-        return validated_data
+        return data
 
 
 def field_from_annotation(annotation: Any, required: bool = True) -> Field:

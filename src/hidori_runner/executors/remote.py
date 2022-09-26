@@ -21,7 +21,9 @@ def main() -> None:
 
     messenger = Messenger(task_name)
     module = MODULES_REGISTRY[task_data["module"]]
-    module.validate_and_execute(task_data, messenger)
+    module.validate(task_data, messenger)
+    if messenger.is_empty:
+        module.execute(task_data, messenger)
     messenger.flush()
 
     # TODO: Summary of failed, affected and unaffected tasks

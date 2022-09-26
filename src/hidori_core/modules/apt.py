@@ -30,7 +30,7 @@ class AptSchema(Schema):
 class AptModule(Module, name="apt", schema_cls=AptSchema):
     def execute(
         self, validated_data: Dict[str, Optional[str]], messenger: Messenger
-    ) -> Dict[str, str]:
+    ) -> None:
         assert apt
 
         cache = apt.Cache(apt.progress.text.OpProgress(io.StringIO()))
@@ -40,7 +40,7 @@ class AptModule(Module, name="apt", schema_cls=AptSchema):
             apt_pkg = cache[package_name]
             if apt_pkg.is_installed:
                 messenger.queue_success(f"package {package_name} is already installed")
-                return {"state": "unaffected"}
+                return
 
             messenger.queue_info(
                 f"will install {apt_pkg.name} to version {apt_pkg.candidate.version}"
@@ -49,20 +49,19 @@ class AptModule(Module, name="apt", schema_cls=AptSchema):
             apt_pkg.mark_install()
             cache.commit()
             messenger.queue_affected(f"package {package_name} has been installed")
-            return {"state": "affected"}
+            return
 
         if validated_data["state"] == APT_STATE_REMOVED and package_name:
             apt_pkg = cache[package_name]
             if not apt_pkg.is_installed:
                 messenger.queue_success(f"package {package_name} is not installed")
-                return {"state": "unaffected"}
+                return
 
             messenger.queue_info(f"will remove {apt_pkg.name}")
 
             apt_pkg.mark_delete()
             cache.commit()
             messenger.queue_affected(f"package {package_name} has been removed  ")
-            return {"state": "affected"}
+            return
 
         messenger.queue_error("internal error")
-        return {"state": "error"}

@@ -7,6 +7,10 @@ class Messenger:
         self._task: str = task_name
         self._messages: List[str] = []
 
+    @property
+    def is_empty(self) -> bool:
+        return len(self._messages) == 0
+
     def queue(self, ty: str, message: str) -> None:
         self._messages.append(
             json.dumps(

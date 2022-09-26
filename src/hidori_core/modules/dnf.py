@@ -29,7 +29,7 @@ class DnfSchema(Schema):
 class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
     def execute(
         self, validated_data: Dict[str, Optional[str]], messenger: Messenger
-    ) -> Dict[str, str]:
+    ) -> None:
         assert dnf
 
         base = dnf.Base()
@@ -44,7 +44,7 @@ class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
             # `package:latest` notation
             if base.sack.query().installed().filter(name=package_name).run():
                 messenger.queue_success(f"package {package_name} is already installed")
-                return {"state": "unaffected"}
+                return
 
             # TODO: Handle package not existing (dnf.exceptions.PackageNotFoundError)
             base.install(package_name)
@@ -60,7 +60,7 @@ class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
 
             base.do_transaction()
             messenger.queue_affected(f"package {package_name} has been installed")
-            return {"state": "affected"}
+            return
 
         if validated_data["state"] == "upgraded" and package_name is None:
             base.upgrade_all()
@@ -69,7 +69,7 @@ class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
 
             if not base.transaction.install_set:
                 messenger.queue_success("all packages are up to date")
-                return {"state": "unaffected"}
+                return
 
             package_count = len(base.transaction.install_set)
             for package in base.transaction.install_set:
@@ -81,7 +81,6 @@ class DnfModule(Module, name="dnf", schema_cls=DnfSchema):
 
             base.do_transaction()
             messenger.queue_affected(f"performed upgrade of {package_count} packages")
-            return {"state": "affected"}
+            return
 
         messenger.queue_error("internal error")
-        return {"state": "error"}
