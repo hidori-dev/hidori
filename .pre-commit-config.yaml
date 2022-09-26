@@ -29,5 +29,6 @@ repos:
     hooks:
       - id: mypy
         args: ["--config-file=pyproject.toml"]
+        files: src
 ci:
   autofix_prs: false
