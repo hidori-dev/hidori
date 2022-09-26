@@ -129,13 +129,14 @@ class Pipeline:
         self._prepared = True
 
     def _copy_core_tree(self, dirname: str, dest: str) -> None:
-        tmp_core_init_path = pathlib.Path(hidori_core.__file__).parent / "__init__.py"
-        open(tmp_core_init_path, "w").close()
         core_package_path = pathlib.Path(hidori_core.__file__).parent / dirname
         tmp_core_package_path = pathlib.Path(dest) / f"hidori_core/{dirname}"
         shutil.copytree(
             str(core_package_path), str(tmp_core_package_path), dirs_exist_ok=True
         )
+        core_init_path = pathlib.Path(hidori_core.__file__).parent / "__init__.py"
+        tmp_core_init_path = pathlib.Path(dest) / "hidori_core/__init__.py"
+        shutil.copy(core_init_path, tmp_core_init_path)
 
     def run(self) -> None:
         if not self._prepared:
