@@ -5,15 +5,11 @@ import tomllib  # type: ignore
 
 from hidori_core.schema import Schema
 from hidori_pipelines.pipeline import Pipeline
-
-
-class TargetSchema(Schema):
-    ip: str
-    user: str
+from hidori_runner.drivers import create_driver
 
 
 class PipelineSchema(Schema):
-    hosts: dict[str, TargetSchema]
+    hosts: dict[str, dict[str, Any]]
     tasks: dict[str, dict[str, Any]]
 
 
@@ -28,7 +24,8 @@ class PipelineGroup(Iterable[Pipeline]):
         schema.validate(data)
 
         self._hosts_data = [
-            {"target": host, "data": data} for host, data in data["hosts"].items()
+            {"target": host, "driver": create_driver(host_data)}
+            for host, host_data in data["hosts"].items()
         ]
         self._pipeline_data = data["tasks"]
         self._hosts = data["hosts"].keys()
