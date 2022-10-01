@@ -12,5 +12,5 @@ class Transport(Generic[T]):
     def push(self, source: str, dest: str) -> None:
         ...
 
-    def invoke(self, path: str) -> None:
+    def invoke(self, path: str, args: list[str]) -> str:
         ...
