@@ -7,6 +7,7 @@ from typing import Any
 
 from hidori_core.schema.base import Schema
 from hidori_pipelines.pipeline import Pipeline
+from hidori_runner import transports
 
 DEFAULT_DRIVER = "ssh"
 
@@ -15,6 +16,7 @@ DRIVERS_REGISTRY: dict[str, type["Driver"]] = {}
 
 class Driver:
     schema: Schema
+    transport_cls: type["transports.Transport[Any]"]
 
     def __init_subclass__(cls, *, name: str) -> None:
         super().__init_subclass__()
@@ -35,6 +37,8 @@ class Driver:
         self.prepare_modules(temp_dir.name)
         self.prepare_executor(temp_dir.name)
         self.prepare_tasks(temp_dir.name, pipeline)
+        transport = self.transport_cls(self)
+        transport.push(temp_dir.name, temp_dir.name)
 
     def prepare_modules(self, temp_dir_path: str) -> None:
         # TODO: Driver should only pick required modules.
