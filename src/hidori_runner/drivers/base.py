@@ -61,7 +61,7 @@ class Driver:
         shutil.copyfile(executor_path, tmp_executor_path)
 
     def prepare_tasks(self, temp_dir_path: str, pipeline: Pipeline) -> None:
-        for step in pipeline._steps:
+        for step in pipeline.steps:
             tmp_task_path = pathlib.Path(temp_dir_path) / f"task-{step.task_id}.json"
             with open(tmp_task_path, "w") as task_file:
                 json.dump(step.task_json, task_file)

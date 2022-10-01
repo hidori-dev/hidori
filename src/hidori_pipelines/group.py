@@ -4,7 +4,7 @@ from typing import Any, Iterable, Iterator
 import tomllib  # type: ignore
 
 from hidori_core.schema import Schema
-from hidori_pipelines.pipeline import Pipeline
+from hidori_pipelines.pipeline import HostData, Pipeline
 from hidori_runner.drivers import create_driver
 
 
@@ -23,7 +23,7 @@ class PipelineGroup(Iterable[Pipeline]):
         schema = PipelineSchema()
         schema.validate(data)
 
-        self._hosts_data = [
+        self._hosts_data: list[HostData] = [
             {"target": host, "driver": create_driver(host_data)}
             for host, host_data in data["hosts"].items()
         ]

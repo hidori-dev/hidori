@@ -1,21 +1,9 @@
-import json
-import pathlib
-import shutil
-import subprocess
-import tempfile
 import uuid
-from typing import Any
+from typing import Any, TypedDict
 
-import hidori_core
-import hidori_runner
 from hidori_common import CLIMessageWriter
 from hidori_core.modules import MODULES_REGISTRY
-
-SSH_OPTIONS = [
-    "-o ControlMaster=auto",
-    "-o ControlPath=~/.ssh/control-%r@%h:%p",
-    "-o ControlPersist=yes",
-]
+from hidori_runner import drivers
 
 PIPELINE_MODULES_REGISTRY: dict[str, type["PipelineStep"]] = {}
 
@@ -54,27 +42,27 @@ class PipelineStep:
 
 class DefaultPipelineStep(PipelineStep, module_name="*"):
     def run(self, pipeline: "Pipeline") -> None:
-        pipeline.run_remote_module(self.task_id)
+        ...
 
 
-# class FilePushPipelineStep(PipelineStep, module_name="file-push"):
-#     def run(self, pipeline: "Pipeline") -> None:
-#         pipeline.run_remote_module(self.task_id)
+class HostData(TypedDict):
+    target: str
+    driver: "drivers.Driver"
 
 
 class Pipeline:
-    def __init__(self, host_data: dict[str, Any], tasks_data: dict[str, Any]) -> None:
-        self.prepared = False
-        self._executor_dir = ""
-
+    def __init__(self, host_data: HostData, tasks_data: dict[str, Any]) -> None:
+        self._prepared = False
         self._steps: list[PipelineStep] = self._create_steps(tasks_data)
-        # TODO: Add support for driver config val
-        # TODO: Add support for remote_path config val
-        # TODO: Extract driver-specific code to the drivers
         self.target = host_data["target"]
-        self.ssh_ip = host_data["data"]["ip"]
-        self.ssh_user = host_data["data"]["user"]
-        self._message_writer = CLIMessageWriter(user=self.ssh_user, target=self.target)
+        self.driver = host_data["driver"]
+        self._message_writer = CLIMessageWriter(
+            user=self.driver.user, target=self.target
+        )
+
+    @property
+    def steps(self) -> list[PipelineStep]:
+        return self._steps
 
     def _create_steps(self, tasks_data: dict[str, Any]) -> list[PipelineStep]:
         steps: list[PipelineStep] = []
@@ -88,55 +76,8 @@ class Pipeline:
         return steps
 
     def prepare(self) -> None:
-        # TODO: Remote runner should only take required modules.
-        # Use MODULES_REGISTRY and self.modules for that
-        # It will also allow third parties to define their own modules.
-        # TODO: This should likely be part of the SSH driver
-        with tempfile.TemporaryDirectory(prefix="hidori-") as tmpdirpath:
-            # TODO: This is terrible. Delete as soon as 3.7 drops.
-            import typing_extensions
-
-            ty_exts_path = typing_extensions.__file__
-            tmp_ty_exts_path = pathlib.Path(tmpdirpath) / "typing_extensions.py"
-            shutil.copyfile(ty_exts_path, tmp_ty_exts_path)
-
-            self._copy_core_tree("compat", tmpdirpath)
-            self._copy_core_tree("modules", tmpdirpath)
-            self._copy_core_tree("schema", tmpdirpath)
-            self._copy_core_tree("utils", tmpdirpath)
-
-            # TODO: Use appropriate executor instead of a hardcoded remote
-            executor_path = (
-                pathlib.Path(hidori_runner.__file__).parent / "executors/remote.py"
-            )
-            tmp_executor_path = pathlib.Path(tmpdirpath) / "executor.py"
-            shutil.copyfile(executor_path, tmp_executor_path)
-
-            for step in self._steps:
-                tmp_task_path = pathlib.Path(tmpdirpath) / f"task-{step.task_id}.json"
-                with open(tmp_task_path, "w") as task_file:
-                    json.dump(step.task_json, task_file)
-
-            # TO THE STARS!
-            # TODO: Part of the transport
-            scp_cmd = (
-                f"scp {' '.join(SSH_OPTIONS)} -qr {tmpdirpath} "
-                f"{self.ssh_user}@{self.ssh_ip}:{tmpdirpath}"
-            )
-            subprocess.run(scp_cmd.split())
-
-        self._executor_dir = tmpdirpath
+        self.driver.prepare(self)
         self._prepared = True
-
-    def _copy_core_tree(self, dirname: str, dest: str) -> None:
-        core_package_path = pathlib.Path(hidori_core.__file__).parent / dirname
-        tmp_core_package_path = pathlib.Path(dest) / f"hidori_core/{dirname}"
-        shutil.copytree(
-            str(core_package_path), str(tmp_core_package_path), dirs_exist_ok=True
-        )
-        core_init_path = pathlib.Path(hidori_core.__file__).parent / "__init__.py"
-        tmp_core_init_path = pathlib.Path(dest) / "hidori_core/__init__.py"
-        shutil.copy(core_init_path, tmp_core_init_path)
 
     def run(self) -> None:
         if not self._prepared:
@@ -146,21 +87,3 @@ class Pipeline:
             pipeline_step.run(self)
 
         self._message_writer.print_summary()
-
-    def run_remote_module(self, task_id: str) -> None:
-        # TODO: Rename this method - modules won't always run on remote.
-        # TODO: Impl a dedicated ssh Transport class
-        # TODO: Replace subprocess calls
-        runner_ssh_cmd = (
-            f"ssh {' '.join(SSH_OPTIONS)} -qt {self.ssh_user}@{self.ssh_ip} "
-            f"python3 {self._executor_dir}/executor.py {task_id}"
-        )
-        results = subprocess.run(runner_ssh_cmd.split(), capture_output=True, text=True)
-        messages_data: list[dict[str, Any]] = []
-        for message in results.stdout.splitlines():
-            try:
-                messages_data.append(json.loads(message))
-            except json.JSONDecodeError:
-                # TODO: For now let's just ignore stdout that is not JSON
-                continue
-        self._message_writer.print_all(messages_data)
