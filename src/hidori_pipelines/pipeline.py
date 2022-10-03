@@ -1,9 +1,10 @@
+import json
 import uuid
 from typing import Any, TypedDict
 
 from hidori_common import CLIMessageWriter
 from hidori_core.modules import MODULES_REGISTRY
-from hidori_runner import drivers
+from hidori_runner.drivers.base import Driver, PreparedPipeline
 
 PIPELINE_MODULES_REGISTRY: dict[str, type["PipelineStep"]] = {}
 
@@ -36,24 +37,20 @@ class PipelineStep:
     def task_json(self) -> dict[str, Any]:
         return {"name": self._task_name, "data": self._task_data}
 
-    def run(self, pipeline: "Pipeline") -> None:
-        raise NotImplementedError()
-
 
 class DefaultPipelineStep(PipelineStep, module_name="*"):
-    def run(self, pipeline: "Pipeline") -> None:
-        ...
+    ...
 
 
 class HostData(TypedDict):
     target: str
-    driver: "drivers.Driver"
+    driver: Driver
 
 
 class Pipeline:
     def __init__(self, host_data: HostData, tasks_data: dict[str, Any]) -> None:
-        self._prepared = False
         self._steps: list[PipelineStep] = self._create_steps(tasks_data)
+        self._prepared_pipeline: PreparedPipeline | None = None
         self.target = host_data["target"]
         self.driver = host_data["driver"]
         self._message_writer = CLIMessageWriter(
@@ -76,14 +73,27 @@ class Pipeline:
         return steps
 
     def prepare(self) -> None:
-        self.driver.prepare(self)
-        self._prepared = True
+        self._prepared_pipeline = self.driver.prepare(self)
 
     def run(self) -> None:
-        if not self._prepared:
+        if not self._prepared_pipeline:
             raise RuntimeError("pipeline is not prepared")
 
-        for pipeline_step in self._steps:
-            pipeline_step.run(self)
+        self.driver.finalize(self._prepared_pipeline)
+        for pipeline_step in self.steps:
+            self.invoke_task(pipeline_step.task_id)
 
         self._message_writer.print_summary()
+
+    def invoke_task(self, task_id: str) -> None:
+        if not self._prepared_pipeline:
+            raise RuntimeError("pipeline is not prepared")
+
+        messages_data: list[dict[str, Any]] = []
+        for message in self.driver.invoke_executor(self._prepared_pipeline, task_id):
+            try:
+                messages_data.append(json.loads(message))
+            except json.JSONDecodeError:
+                # TODO: For now let's just ignore stdout that is not JSON
+                continue
+        self._message_writer.print_all(messages_data)
