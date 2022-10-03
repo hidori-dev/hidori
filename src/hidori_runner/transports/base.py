@@ -1,8 +1,11 @@
-from typing import Generic, TypeVar
+from typing import Generic, Protocol, TypeVar
 
-from hidori_runner import drivers
 
-T = TypeVar("T", bound="drivers.Driver")
+class Driver(Protocol):
+    ...
+
+
+T = TypeVar("T", bound=Driver)
 
 
 class Transport(Generic[T]):

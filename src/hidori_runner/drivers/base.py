@@ -4,32 +4,49 @@ import json
 import pathlib
 import shutil
 import tempfile
-from typing import Any
 
-import hidori_pipelines
+# TODO: Remove this type ignore when pre-commit.ci is updated to py3.11
+from typing import Any, Protocol, Self, TypeVar  # type: ignore
+
+from hidori_common.typings import Pipeline
 from hidori_core.schema.base import Schema
-from hidori_runner import transports
 
 DEFAULT_DRIVER = "ssh"
 
 DRIVERS_REGISTRY: dict[str, type["Driver"]] = {}
 
+T = TypeVar("T", bound="Driver")
+
+
+class Transport(Protocol[T]):
+    _driver: T
+
+    def __init__(self, driver: T) -> None:
+        ...
+
+    def push(self, source: str, dest: str) -> None:
+        ...
+
+    def invoke(self, path: str, args: list[str]) -> str:
+        ...
+
 
 @dataclasses.dataclass
 class PreparedPipeline:
     dirpath: str
-    transport: "transports.Transport[Any]"
+    transport: Transport[Any]
 
 
 class Driver:
     schema: Schema
-    transport_cls: type["transports.Transport[Any]"]
+    transport_cls: type[Transport[Self]]
 
     def __init_subclass__(cls, *, name: str) -> None:
         super().__init_subclass__()
 
         if name in DRIVERS_REGISTRY:
             raise RuntimeError(f"{name} driver is already registered.")
+        # TODO: Verify that transport_cls matches the Transport protocol
         DRIVERS_REGISTRY[name] = cls
 
     def __init__(self, config: Any) -> None:
@@ -39,7 +56,7 @@ class Driver:
     def user(self) -> str:
         raise NotImplementedError()
 
-    def prepare(self, pipeline: "hidori_pipelines.Pipeline") -> PreparedPipeline:
+    def prepare(self, pipeline: Pipeline) -> PreparedPipeline:
         dirpath = tempfile.TemporaryDirectory(prefix="hidori-")
         self.prepare_modules(dirpath.name)
         self.prepare_executor(dirpath.name)
@@ -78,9 +95,7 @@ class Driver:
         tmp_executor_path = pathlib.Path(temp_dir_path) / "executor.py"
         shutil.copyfile(executor_path, tmp_executor_path)
 
-    def prepare_tasks(
-        self, temp_dir_path: str, pipeline: "hidori_pipelines.Pipeline"
-    ) -> None:
+    def prepare_tasks(self, temp_dir_path: str, pipeline: Pipeline) -> None:
         for step in pipeline.steps:
             tmp_task_path = pathlib.Path(temp_dir_path) / f"task-{step.task_id}.json"
             with open(tmp_task_path, "w") as task_file:

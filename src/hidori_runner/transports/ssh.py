@@ -18,14 +18,15 @@ class SSHTransport(Transport["drivers.SSHDriver"]):
         ssh_user = self._driver.ssh_user
         ssh_ip = self._driver.ip
 
-        cmd = f"scp {SSH_OPTIONS} -qr {source} {ssh_user}@{ssh_ip}:{dest}"
+        cmd = f"scp {SSH_OPTIONS} -qr {source} {ssh_user}@{ssh_ip}:{dest}".split()
         # TO THE STARS!
-        subprocess.run(cmd.split())
+        subprocess.run(cmd)
 
-    def invoke(self, path: str, args: list[str]) -> str:
+    def invok(self, path: str, args: list[str]) -> str:
         ssh_user = self._driver.ssh_user
         ssh_ip = self._driver.ip
 
-        cmd = f"ssh {SSH_OPTIONS} -qt {ssh_user}@{ssh_ip} python3 {path} {args}"
-        results = subprocess.run(cmd.split(), capture_output=True, text=True)
+        cmd = f"ssh {SSH_OPTIONS} -qt {ssh_user}@{ssh_ip} python3 {path}".split()
+        cmd.extend(args)
+        results = subprocess.run(cmd, capture_output=True, text=True)
         return results.stdout
