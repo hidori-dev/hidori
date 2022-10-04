@@ -16,7 +16,7 @@ SSH_OPTIONS = " ".join(
 class SSHTransport(Transport["drivers.SSHDriver"]):
     def push(self, source: str, dest: str) -> None:
         ssh_user = self._driver.ssh_user
-        ssh_ip = self._driver.ip
+        ssh_ip = self._driver.ssh_ip
 
         cmd = f"scp {SSH_OPTIONS} -qr {source} {ssh_user}@{ssh_ip}:{dest}".split()
         # TO THE STARS!
@@ -24,7 +24,7 @@ class SSHTransport(Transport["drivers.SSHDriver"]):
 
     def invoke(self, path: str, args: list[str]) -> str:
         ssh_user = self._driver.ssh_user
-        ssh_ip = self._driver.ip
+        ssh_ip = self._driver.ssh_ip
 
         cmd = f"ssh {SSH_OPTIONS} -qt {ssh_user}@{ssh_ip} python3 {path}".split()
         cmd.extend(args)
