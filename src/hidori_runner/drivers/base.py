@@ -33,7 +33,7 @@ class Transport(Protocol[T]):
 
 @dataclasses.dataclass
 class PreparedPipeline:
-    dirpath: str
+    dirpath: tempfile.TemporaryDirectory[str]
     transport: Transport[Any]
 
 
@@ -61,18 +61,17 @@ class Driver:
         self.prepare_modules(dirpath.name)
         self.prepare_executor(dirpath.name)
         self.prepare_tasks(dirpath.name, pipeline)
-        return PreparedPipeline(
-            dirpath=dirpath.name, transport=self.transport_cls(self)
-        )
+        return PreparedPipeline(dirpath=dirpath, transport=self.transport_cls(self))
 
     def finalize(self, prepared_pipeline: PreparedPipeline) -> None:
         transport = prepared_pipeline.transport
-        dirpath = prepared_pipeline.dirpath
-        transport.push(dirpath, dirpath)
+        base_dir = prepared_pipeline.dirpath.name
+        transport.push(base_dir, base_dir)
 
     def invoke_executor(self, prepared_pipeline: PreparedPipeline, task_id: str) -> str:
         transport = prepared_pipeline.transport
-        executor_path = pathlib.Path(prepared_pipeline.dirpath) / "executor.py"
+        base_dir = prepared_pipeline.dirpath.name
+        executor_path = pathlib.Path(base_dir) / "executor.py"
         return transport.invoke(str(executor_path), [task_id])
 
     def prepare_modules(self, temp_dir_path: str) -> None:
@@ -86,7 +85,8 @@ class Driver:
         ty_exts_path = typing_extensions.__file__
         tmp_ty_exts_path = pathlib.Path(temp_dir_path) / "typing_extensions.py"
         shutil.copyfile(ty_exts_path, tmp_ty_exts_path)
-        self._copy_core_tree(temp_dir_path)
+        tmp_core_path = pathlib.Path(temp_dir_path) / "hidori_core"
+        self._copy_core_tree(tmp_core_path)
 
     def prepare_executor(self, temp_dir_path: str) -> None:
         # TODO: Use appropriate executor instead of a hardcoded remote
@@ -101,9 +101,9 @@ class Driver:
             with open(tmp_task_path, "w") as task_file:
                 json.dump(step.task_json, task_file)
 
-    def _copy_core_tree(self, dest: str) -> None:
+    def _copy_core_tree(self, dest: pathlib.Path) -> None:
         core_module = importlib.import_module("hidori_core")
-        core_package_path = str(pathlib.Path(core_module.__path__[0]))
+        core_package_path = pathlib.Path(core_module.__path__[0])
         ignores = shutil.ignore_patterns("*.pyc", "__pycache__")
         shutil.copytree(core_package_path, dest, ignore=ignores, dirs_exist_ok=True)
 

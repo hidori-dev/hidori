@@ -90,7 +90,8 @@ class Pipeline:
             raise RuntimeError("pipeline is not prepared")
 
         messages_data: list[dict[str, Any]] = []
-        for message in self.driver.invoke_executor(self._prepared_pipeline, task_id):
+        executor_output = self.driver.invoke_executor(self._prepared_pipeline, task_id)
+        for message in executor_output.splitlines():
             try:
                 messages_data.append(json.loads(message))
             except json.JSONDecodeError:
