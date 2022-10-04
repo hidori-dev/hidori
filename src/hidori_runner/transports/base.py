@@ -1,4 +1,4 @@
-from typing import Generic, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
 
 class Driver(Protocol):
@@ -8,7 +8,9 @@ class Driver(Protocol):
 T = TypeVar("T", bound=Driver)
 
 
-class Transport(Generic[T]):
+class Transport(Protocol[T]):
+    _driver: T
+
     def __init__(self, driver: T) -> None:
         self._driver = driver
 
