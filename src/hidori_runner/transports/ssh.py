@@ -17,16 +17,24 @@ class SSHTransport(Transport["drivers.SSHDriver"]):
     def push(self, source: str, dest: str) -> None:
         ssh_user = self._driver.ssh_user
         ssh_ip = self._driver.ssh_ip
+        ssh_port = self._driver.ssh_port
 
-        cmd = f"scp {SSH_OPTIONS} -qr {source} {ssh_user}@{ssh_ip}:{dest}".split()
+        cmd = (
+            f"scp {SSH_OPTIONS} -qr -P {ssh_port} {source} "
+            f"{ssh_user}@{ssh_ip}:{dest}".split()
+        )
         # TO THE STARS!
         subprocess.run(cmd)
 
     def invoke(self, path: str, args: list[str]) -> str:
         ssh_user = self._driver.ssh_user
         ssh_ip = self._driver.ssh_ip
+        ssh_port = self._driver.ssh_port
 
-        cmd = f"ssh {SSH_OPTIONS} -qt {ssh_user}@{ssh_ip} python3 {path}".split()
+        cmd = (
+            f"ssh {SSH_OPTIONS} -qt -p {ssh_port} "
+            f"{ssh_user}@{ssh_ip} python3 {path}".split()
+        )
         cmd.extend(args)
         results = subprocess.run(cmd, capture_output=True, text=True)
         # TODO: raise an exception if something wrong happened
