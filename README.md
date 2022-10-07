@@ -26,9 +26,9 @@ pip install hidori
 With Hidori installed you need a single TOML file that provides where and what should be done. A simple 'hello world' example assuming that some machine is available at the given IP address:
 
 ```toml
-[hosts]
+[targets]
 
-  [hosts.vm]
+  [targets.vm]
   ip = "192.168.122.31"
   user = "root"
 

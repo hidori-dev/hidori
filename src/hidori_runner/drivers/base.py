@@ -93,6 +93,6 @@ class Driver:
         shutil.copytree(core_package_path, dest, ignore=ignores, dirs_exist_ok=True)
 
 
-def create_driver(host_data: dict[str, Any]) -> Driver:
-    driver_name = host_data.pop("driver", DEFAULT_DRIVER)
-    return DRIVERS_REGISTRY[driver_name](host_data)
+def create_driver(target_data: dict[str, Any]) -> Driver:
+    driver_name = target_data.pop("driver", DEFAULT_DRIVER)
+    return DRIVERS_REGISTRY[driver_name](target_data)

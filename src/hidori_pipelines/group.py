@@ -4,12 +4,12 @@ from typing import Any, Iterable, Iterator
 import tomllib  # type: ignore
 
 from hidori_core.schema import Schema
-from hidori_pipelines.pipeline import HostData, Pipeline
+from hidori_pipelines.pipeline import Pipeline, TargetData
 from hidori_runner.drivers import create_driver
 
 
 class PipelineSchema(Schema):
-    hosts: dict[str, dict[str, Any]]
+    targets: dict[str, dict[str, Any]]
     tasks: dict[str, dict[str, Any]]
 
 
@@ -23,21 +23,21 @@ class PipelineGroup(Iterable[Pipeline]):
         schema = PipelineSchema()
         schema.validate(data)
 
-        self._hosts_data: list[HostData] = [
-            {"target": host, "driver": create_driver(host_data)}
-            for host, host_data in data["hosts"].items()
+        self._targets_data: list[TargetData] = [
+            {"target": target, "driver": create_driver(target_data)}
+            for target, target_data in data["targets"].items()
         ]
         self._pipeline_data = data["tasks"]
-        self._hosts = data["hosts"].keys()
+        self._targets = data["targets"].keys()
         self._current = 0
 
     def __iter__(self) -> Iterator[Pipeline]:
         return self
 
     def __next__(self) -> Pipeline:
-        if self._current >= len(self._hosts_data):
+        if self._current >= len(self._targets_data):
             raise StopIteration()
 
-        host_data = self._hosts_data[self._current]
+        target_data = self._targets_data[self._current]
         self._current += 1
-        return Pipeline(host_data, self._pipeline_data)
+        return Pipeline(target_data, self._pipeline_data)

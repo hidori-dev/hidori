@@ -42,17 +42,17 @@ class DefaultPipelineStep(PipelineStep, module_name="*"):
     ...
 
 
-class HostData(TypedDict):
+class TargetData(TypedDict):
     target: str
     driver: Driver
 
 
 class Pipeline:
-    def __init__(self, host_data: HostData, tasks_data: dict[str, Any]) -> None:
+    def __init__(self, target_data: TargetData, tasks_data: dict[str, Any]) -> None:
         self._steps: list[PipelineStep] = self._create_steps(tasks_data)
         self._prepared_pipeline: PreparedPipeline | None = None
-        self.target = host_data["target"]
-        self.driver = host_data["driver"]
+        self.target = target_data["target"]
+        self.driver = target_data["driver"]
         self._message_writer = CLIMessageWriter(
             user=self.driver.user, target=self.target
         )
