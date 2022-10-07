@@ -6,29 +6,14 @@ import shutil
 import tempfile
 
 # TODO: Remove this type ignore when pre-commit.ci is updated to py3.11
-from typing import Any, Protocol, Self, TypeVar  # type: ignore
+from typing import Any, Self  # type: ignore
 
-from hidori_common.typings import Pipeline
+from hidori_common.typings import Pipeline, Transport
 from hidori_core.schema.base import Schema
 
 DEFAULT_DRIVER = "ssh"
 
 DRIVERS_REGISTRY: dict[str, type["Driver"]] = {}
-
-T = TypeVar("T", bound="Driver")
-
-
-class Transport(Protocol[T]):
-    _driver: T
-
-    def __init__(self, driver: T) -> None:
-        ...
-
-    def push(self, source: str, dest: str) -> None:
-        ...
-
-    def invoke(self, path: str, args: list[str]) -> str:
-        ...
 
 
 @dataclasses.dataclass

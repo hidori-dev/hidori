@@ -1,8 +1,12 @@
-import subprocess
+from __future__ import annotations
 
-# TODO: Seems to be https://github.com/PyCQA/pyflakes/issues/567
-from hidori_runner import drivers  # noqa: F401
-from hidori_runner.transports.base import Transport
+import subprocess
+from typing import TYPE_CHECKING
+
+from hidori_common.typings import Transport
+
+if TYPE_CHECKING:
+    from hidori_runner.drivers import SSHDriver
 
 SSH_OPTIONS = " ".join(
     [
@@ -13,7 +17,7 @@ SSH_OPTIONS = " ".join(
 )
 
 
-class SSHTransport(Transport["drivers.SSHDriver"]):
+class SSHTransport(Transport[SSHDriver]):
     def push(self, source: str, dest: str) -> None:
         ssh_user = self._driver.ssh_user
         ssh_ip = self._driver.ssh_ip
