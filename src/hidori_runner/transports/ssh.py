@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import subprocess
 from typing import TYPE_CHECKING
@@ -8,7 +6,8 @@ from hidori_common.typings import Transport
 from hidori_runner.transports.errors import TransportError
 
 if TYPE_CHECKING:
-    from hidori_runner.drivers import SSHDriver
+    # TODO: Seems to be https://github.com/PyCQA/pyflakes/issues/567
+    from hidori_runner.drivers import SSHDriver  # noqa: F401
 
 SSH_OPTIONS = " ".join(
     [
@@ -35,7 +34,7 @@ def run_command(popen_cmd: list[str]) -> str:
     return results.stdout
 
 
-class SSHTransport(Transport[SSHDriver]):
+class SSHTransport(Transport["SSHDriver"]):
     def push(self, source: str, dest: str) -> None:
         ssh_user = self._driver.ssh_user
         ssh_ip = self._driver.ssh_ip
