@@ -59,4 +59,4 @@ class CLIMessageWriter:
         )
 
     def _get_current_time(self) -> str:
-        return datetime.datetime.now().strftime("%H:%M:%S")
+        return datetime.datetime.now().strftime(r"%b %d %H:%M:%S")
