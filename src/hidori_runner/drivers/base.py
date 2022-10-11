@@ -4,9 +4,7 @@ import json
 import pathlib
 import shutil
 import tempfile
-
-# TODO: Remove this type ignore when pre-commit.ci is updated to py3.11
-from typing import Any, Self  # type: ignore
+from typing import Any, Self
 
 from hidori_common.typings import Pipeline, Transport
 from hidori_core.schema.base import Schema
@@ -24,7 +22,8 @@ class PreparedPipeline:
 
 class Driver:
     schema: Schema
-    transport_cls: type[Transport[Self]]
+    # TODO: https://github.com/python/mypy/issues/11871
+    transport_cls: type[Transport[Self]]  # type: ignore
 
     def __init_subclass__(cls, *, name: str) -> None:
         super().__init_subclass__()
