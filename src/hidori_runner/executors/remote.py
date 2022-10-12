@@ -1,6 +1,7 @@
 import json
 import pathlib
 import sys
+import traceback
 
 from hidori_core.modules import MODULES_REGISTRY
 from hidori_core.utils import Messenger
@@ -23,10 +24,13 @@ def main() -> None:
     module = MODULES_REGISTRY[task_data["module"]]
     module.validate(task_data, messenger)
     if messenger.is_empty:
-        module.execute(task_data, messenger)
+        try:
+            module.execute(task_data, messenger)
+        except Exception as e:
+            messenger.queue_error(
+                "".join(traceback.format_exception(type(e), e, e.__traceback__))
+            )
     messenger.flush()
-
-    # TODO: Summary of failed, affected and unaffected tasks
 
 
 if __name__ == "__main__":
