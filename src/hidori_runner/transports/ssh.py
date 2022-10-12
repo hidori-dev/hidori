@@ -21,17 +21,18 @@ SSH_OPTIONS = " ".join(
 def run_command(popen_cmd: list[str]) -> str:
     results = subprocess.run(popen_cmd, capture_output=True, text=True)
     if results.returncode != 0:
+        message = results.stderr if results.stderr else results.stdout
         raise TransportError(
             json.dumps(
                 {
                     "type": "error",
                     "task": "INTERNAL-SSH-TRANSPORT",
-                    "message": results.stderr.strip(),
+                    "message": message.strip(),
                 }
             )
         )
 
-    return results.stdout
+    return results.stdout.strip()
 
 
 class SSHTransport(Transport["SSHDriver"]):
