@@ -547,6 +547,14 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
+name = "pyfakefs"
+version = "5.0.0"
+description = "pyfakefs implements a fake file system that mocks the Python file system modules."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "Pygments"
 version = "2.13.0"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -850,7 +858,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "c5ede4ebde473589740fea3f5ce294b9157401a698f58d4c518871e208041401"
+content-hash = "6f6638c1465ee733725ecef1b2fd089df180dbd621f069589f65816987c426ef"
 
 [metadata.files]
 appnope = [
@@ -1145,6 +1153,10 @@ py = [
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
     {file = "pycparser-2.21.tar.gz", hash = "sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206"},
+]
+pyfakefs = [
+    {file = "pyfakefs-5.0.0-py3-none-any.whl", hash = "sha256:e1b01954978fe2d9a4d75f079359d7f8d3af3bb12ff2dc8633a4cc0a0dc7fbda"},
+    {file = "pyfakefs-5.0.0.tar.gz", hash = "sha256:19d1d8f1ee520891d78b6ed05c2078e0792d545f83dee33461fbaa5cc72e187d"},
 ]
 Pygments = [
     {file = "Pygments-2.13.0-py3-none-any.whl", hash = "sha256:f643f331ab57ba3c9d89212ee4a2dabc6e94f117cf4eefde99a0574720d14c42"},
