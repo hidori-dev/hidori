@@ -33,6 +33,7 @@ class Driver(Protocol):
 
 
 class Transport(Protocol[DT]):
+    # TODO: Add pre-flight env detection and verification
     _driver: DT
 
     def __init__(self, driver: DT) -> None:
