@@ -33,10 +33,10 @@ repository = "https://github.com/hidori-dev/hidori"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-typing-extensions = "^4.3.0"
+typing-extensions = "^4.4.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.8.0"
+black = "^22.10.0"
 freezegun = "^1.2.2"
 ipython = "^8.5.0"
 mypy = "^0.982"
