@@ -2,7 +2,7 @@ import json
 import uuid
 from typing import Any, TypedDict
 
-from hidori_common import CLIMessageWriter
+from hidori_common import ConsolePrinter
 from hidori_core.modules import MODULES_REGISTRY
 from hidori_runner.drivers.base import Driver, PreparedPipeline
 
@@ -53,9 +53,7 @@ class Pipeline:
         self._prepared_pipeline: PreparedPipeline | None = None
         self.target = target_data["target"]
         self.driver = target_data["driver"]
-        self._message_writer = CLIMessageWriter(
-            user=self.driver.user, target=self.target
-        )
+        self._printer = ConsolePrinter(user=self.driver.user, target=self.target)
 
     @property
     def steps(self) -> list[PipelineStep]:
@@ -83,7 +81,7 @@ class Pipeline:
         for pipeline_step in self.steps:
             self.invoke_task(pipeline_step.task_id)
 
-        self._message_writer.print_summary()
+        self._printer.print_summary()
 
     def invoke_task(self, task_id: str) -> None:
         if not self._prepared_pipeline:
@@ -97,4 +95,4 @@ class Pipeline:
             except json.JSONDecodeError:
                 # TODO: For now let's just ignore stdout that is not JSON
                 continue
-        self._message_writer.print_all(messages_data)
+        self._printer.print_all(messages_data)

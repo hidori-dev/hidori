@@ -1,28 +1,28 @@
 import freezegun
 import pytest
 
-from hidori_common.cli import CLIMessageWriter
+from hidori_common.cli import ConsolePrinter
 
 
 @pytest.fixture(scope="module")
-def message_writer() -> CLIMessageWriter:
-    return CLIMessageWriter(user="root", target="machine")
+def printer() -> ConsolePrinter:
+    return ConsolePrinter(user="root", target="machine")
 
 
 def test_print_summary_stub(
-    capsys: pytest.CaptureFixture[str], message_writer: CLIMessageWriter
+    capsys: pytest.CaptureFixture[str], printer: ConsolePrinter
 ):
-    message_writer.print_summary()
+    printer.print_summary()
     assert capsys.readouterr().out == "\n"
 
 
 @freezegun.freeze_time("2022-10-13 20:30:15")
 def test_print_single_message(
-    capsys: pytest.CaptureFixture[str], message_writer: CLIMessageWriter
+    capsys: pytest.CaptureFixture[str], printer: ConsolePrinter
 ):
     data = {"task": "Hello World", "type": "success", "message": "It worked"}
 
-    message_writer.print_one(data)
+    printer.print_one(data)
     output = capsys.readouterr().out.splitlines()
     assert len(output) == 2
     assert output[0] == "\x1b[1m[root@machine: Hello World]\x1b[0m"

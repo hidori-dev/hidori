@@ -28,7 +28,7 @@ STATUS_MAP = {
 }
 
 
-class CLIMessageWriter:
+class ConsolePrinter:
     def __init__(self, *, user: str, target: str) -> None:
         self.user = user
         self.target = target
