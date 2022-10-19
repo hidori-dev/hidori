@@ -97,3 +97,62 @@ def test_executor_task_json_module_not_found_error(
         "task": "system",
         "message": "internal error - specified module does not exist",
     }
+
+
+@pytest.mark.parametrize("mock_argv", [["/hidori/executor.py", "foo"]], indirect=True)
+@pytest.mark.usefixtures("mock_argv")
+@pytest.mark.usefixtures("example_module")
+def test_executor_task_json_module_validation_error(
+    fs: FakeFilesystem, capsys: pytest.CaptureFixture[str]
+):
+    data = {"name": "example", "data": {"module": "example", "error": "data"}}
+
+    fs.create_file("/hidori/task-foo.json", contents=json.dumps(data))
+    with pytest.raises(SystemExit):
+        executor_main()
+
+    assert json.loads(capsys.readouterr().out) == {
+        "type": "error",
+        "task": "example",
+        "message": "action: value for required field not provided",
+    }
+
+
+@pytest.mark.parametrize("mock_argv", [["/hidori/executor.py", "foo"]], indirect=True)
+@pytest.mark.usefixtures("mock_argv")
+@pytest.mark.usefixtures("example_module")
+def test_executor_task_json_module_execution_error(
+    fs: FakeFilesystem, capsys: pytest.CaptureFixture[str]
+):
+    data = {"name": "example", "data": {"module": "example", "action": "error"}}
+
+    fs.create_file("/hidori/task-foo.json", contents=json.dumps(data))
+    with pytest.raises(SystemExit):
+        executor_main()
+
+    messages = capsys.readouterr().out.splitlines()
+    assert len(messages) == 2
+    assert json.loads(messages[0]) == {
+        "type": "error",
+        "task": "example",
+        "message": "runtime error",
+    }
+    assert json.loads(messages[1])
+
+
+@pytest.mark.parametrize("mock_argv", [["/hidori/executor.py", "foo"]], indirect=True)
+@pytest.mark.usefixtures("mock_argv")
+@pytest.mark.usefixtures("example_module")
+def test_executor_task_json_module_execution_success(
+    fs: FakeFilesystem, capsys: pytest.CaptureFixture[str]
+):
+    data = {"name": "example", "data": {"module": "example", "action": "ok"}}
+
+    fs.create_file("/hidori/task-foo.json", contents=json.dumps(data))
+    executor_main()
+
+    assert json.loads(capsys.readouterr().out) == {
+        "type": "success",
+        "task": "example",
+        "message": "ok",
+    }
