@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Protocol, TypeVar
+from typing import Any, ClassVar, Iterable, Protocol, TypeVar
 
 DT = TypeVar("DT", bound="Driver")
 
@@ -35,12 +35,16 @@ class Driver(Protocol):
 class Transport(Protocol[DT]):
     # TODO: Add pre-flight env detection and verification
     _driver: DT
+    name: ClassVar[str]
+
+    def __init_subclass__(cls, name: str) -> None:
+        cls.name = name
 
     def __init__(self, driver: DT) -> None:
         self._driver = driver
 
-    def push(self, source: str, dest: str) -> None:
+    def push(self, source: str, dest: str) -> list[dict[str, str]]:
         ...
 
-    def invoke(self, path: str, args: list[str]) -> str:
+    def invoke(self, path: str, args: list[str]) -> list[dict[str, str]]:
         ...
