@@ -17,14 +17,14 @@ SSH_OPTIONS = " ".join(
 )
 
 
-def run_command(popen_cmd: list[str]) -> str:
+def run_command(popen_cmd: list[str]) -> tuple[bool, str]:
     results = subprocess.run(popen_cmd, capture_output=True, text=True)
     if results.returncode == 0:
         output = results.stdout
     else:
         output = results.stderr if results.stderr else results.stdout
 
-    return output.strip()
+    return results.returncode == 0, output.strip()
 
 
 class SSHTransport(Transport["SSHDriver"], name="ssh"):
@@ -38,7 +38,8 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
             f"{ssh_user}@{ssh_ip}:{dest}".split()
         )
         # TO THE STARS!
-        return get_messages(run_command(cmd), self.name)
+        success, output = run_command(cmd)
+        return get_messages(output, self.name, require_json=success)
 
     def invoke(self, path: str, args: list[str]) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
@@ -50,4 +51,5 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
             f"{ssh_user}@{ssh_ip} python3 {path}".split()
         )
         cmd.extend(args)
-        return get_messages(run_command(cmd), self.name)
+        success, output = run_command(cmd)
+        return get_messages(output, self.name, require_json=success)

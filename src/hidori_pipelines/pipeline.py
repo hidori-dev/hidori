@@ -1,4 +1,3 @@
-import json
 import uuid
 from typing import Any, TypedDict
 
@@ -78,21 +77,17 @@ class Pipeline:
             raise RuntimeError("pipeline is not prepared")
 
         self.driver.finalize(self._prepared_pipeline)
+        self.handle_messages()
         for pipeline_step in self.steps:
-            self.invoke_task(pipeline_step.task_id)
+            self.driver.invoke_executor(self._prepared_pipeline, pipeline_step.task_id)
+            self.handle_messages()
 
         self._printer.print_summary()
 
-    def invoke_task(self, task_id: str) -> None:
+    def handle_messages(self) -> None:
         if not self._prepared_pipeline:
             raise RuntimeError("pipeline is not prepared")
 
-        messages_data: list[dict[str, Any]] = []
-        executor_output = self.driver.invoke_executor(self._prepared_pipeline, task_id)
-        for message in executor_output.splitlines():
-            try:
-                messages_data.append(json.loads(message))
-            except json.JSONDecodeError:
-                # TODO: For now let's just ignore stdout that is not JSON
-                continue
-        self._printer.print_all(messages_data)
+        if self._prepared_pipeline.messages:
+            self._printer.print_all(self._prepared_pipeline.messages)
+            self._prepared_pipeline.messages.clear()

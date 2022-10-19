@@ -18,6 +18,7 @@ DRIVERS_REGISTRY: dict[str, type["Driver"]] = {}
 class PreparedPipeline:
     dirpath: tempfile.TemporaryDirectory[str]
     transport: Transport[Any]
+    messages: list[dict[str, str]] = dataclasses.field(default_factory=list)
 
 
 class Driver:
@@ -50,13 +51,17 @@ class Driver:
     def finalize(self, prepared_pipeline: PreparedPipeline) -> None:
         transport = prepared_pipeline.transport
         base_dir = prepared_pipeline.dirpath.name
-        transport.push(base_dir, base_dir)
+        prepared_pipeline.messages.extend(transport.push(base_dir, base_dir))
 
-    def invoke_executor(self, prepared_pipeline: PreparedPipeline, task_id: str) -> str:
+    def invoke_executor(
+        self, prepared_pipeline: PreparedPipeline, task_id: str
+    ) -> None:
         transport = prepared_pipeline.transport
         base_dir = prepared_pipeline.dirpath.name
         executor_path = pathlib.Path(base_dir) / "executor.py"
-        return transport.invoke(str(executor_path), [task_id])
+        prepared_pipeline.messages.extend(
+            transport.invoke(str(executor_path), [task_id])
+        )
 
     def prepare_modules(self, temp_dir_path: str) -> None:
         # TODO: Driver should only pick required modules.

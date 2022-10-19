@@ -24,9 +24,6 @@ class Pipeline(Protocol):
     def run(self) -> None:
         ...
 
-    def invoke_task(self, task_id: str) -> None:
-        ...
-
 
 class Driver(Protocol):
     ...
