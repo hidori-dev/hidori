@@ -1,3 +1,3 @@
-from hidori_common.cli import CLIMessageWriter
+from hidori_common.cli import ConsolePrinter
 
-__all__ = ["CLIMessageWriter"]
+__all__ = ["ConsolePrinter"]
