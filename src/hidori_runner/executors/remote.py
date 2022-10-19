@@ -68,7 +68,10 @@ def main() -> None:
             task_messenger.queue_error(
                 "".join(traceback.format_exception(type(e), e, e.__traceback__))
             )
+    has_error = task_messenger.has_errors
     task_messenger.flush()
+    if has_error:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
