@@ -1,4 +1,5 @@
 import os
+import pathlib
 import shutil
 
 import pytest
@@ -29,7 +30,11 @@ class ExampleDriver:
 
 
 class ExampleTransport(Transport[ExampleDriver], name="example"):
-    def push(self, source: str, dest: str) -> list[dict[str, str]]:
+    def get_destination(self, source: str) -> str:
+        return str(pathlib.Path("/example") / pathlib.Path(source).name)
+
+    def push(self, source: str) -> list[dict[str, str]]:
+        dest = self.get_destination(source)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         try:
             shutil.copy(source, dest)

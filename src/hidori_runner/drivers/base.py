@@ -58,18 +58,14 @@ class Driver:
 
     def finalize(self, prepared_pipeline: PreparedPipeline) -> None:
         transport = prepared_pipeline.transport
-        base_dir = prepared_pipeline.localpath.name
-        prepared_pipeline.messages.extend(transport.push(base_dir, base_dir))
+        source = str(prepared_pipeline.localpath)
+        prepared_pipeline.messages.extend(transport.push(source))
 
     def invoke_executor(
         self, prepared_pipeline: PreparedPipeline, task_id: str
     ) -> None:
         transport = prepared_pipeline.transport
-        base_dir = prepared_pipeline.localpath
-        executor_path = base_dir / "executor.py"
-        prepared_pipeline.messages.extend(
-            transport.invoke(str(executor_path), [task_id])
-        )
+        prepared_pipeline.messages.extend(transport.invoke("executor.py", [task_id]))
 
     def prepare_modules(self, localpath: pathlib.Path) -> None:
         # TODO: Driver should only pick required modules.

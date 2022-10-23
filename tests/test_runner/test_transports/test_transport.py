@@ -9,7 +9,7 @@ from hidori_common.typings import Transport
 
 @pytest.mark.usefixtures("fs")
 def test_transport_push_file_does_not_exist_error(example_transport: Transport[Any]):
-    messages = example_transport.push("/foo/source", "/bar/dest")
+    messages = example_transport.push("/foo/hidori")
     assert messages == [
         {
             "type": "error",
@@ -22,10 +22,10 @@ def test_transport_push_file_does_not_exist_error(example_transport: Transport[A
 def test_transport_pushed_file_no_read_error(
     example_transport: Transport[Any], fs: FakeFilesystem
 ):
-    fs.create_file("/foo/source", contents="data")
-    os.chmod("/foo/source", 0o000)
+    fs.create_file("/foo/hidori", contents="data")
+    os.chmod("/foo/hidori", 0o000)
 
-    messages = example_transport.push("/foo/source", "/bar/dest")
+    messages = example_transport.push("/foo/hidori")
     assert messages == [
         {
             "type": "error",
@@ -38,17 +38,17 @@ def test_transport_pushed_file_no_read_error(
 def test_transport_pushed_file_read_ok(
     example_transport: Transport[Any], fs: FakeFilesystem
 ):
-    fs.create_file("/foo/source", contents="data")
-    messages = example_transport.push("/foo/source", "/bar/dest")
+    fs.create_file("/foo/hidori", contents="data")
+    messages = example_transport.push("/foo/hidori")
     assert messages == []
 
-    with open("/bar/dest") as f:
+    with open("/example/hidori") as f:
         assert f.read() == "data"
 
 
 @pytest.mark.usefixtures("fs")
 def test_transport_invoke_file_does_not_exist_error(example_transport: Transport[Any]):
-    messages = example_transport.invoke("/bar/dest", [])
+    messages = example_transport.invoke("/example/hidori", [])
     assert messages == [
         {
             "type": "error",
@@ -61,10 +61,10 @@ def test_transport_invoke_file_does_not_exist_error(example_transport: Transport
 def test_transport_invoke_no_file_permission_error(
     example_transport: Transport[Any], fs: FakeFilesystem
 ):
-    fs.create_file("/bar/dest", contents="data")
-    os.chmod("/bar/dest", 0o000)
+    fs.create_file("/example/hidori", contents="data")
+    os.chmod("/example/hidori", 0o000)
 
-    messages = example_transport.invoke("/bar/dest", [])
+    messages = example_transport.invoke("/example/hidori", [])
     assert messages == [
         {
             "type": "error",
@@ -77,6 +77,6 @@ def test_transport_invoke_no_file_permission_error(
 def test_transport_invoke_success_ok(
     example_transport: Transport[Any], fs: FakeFilesystem
 ):
-    fs.create_file("/bar/dest", contents="data")
-    messages = example_transport.invoke("/bar/dest", ["upper"])
+    fs.create_file("/example/hidori", contents="data")
+    messages = example_transport.invoke("/example/hidori", ["upper"])
     assert messages == [{"type": "success", "task": "example", "message": "DATA"}]

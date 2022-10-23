@@ -40,7 +40,7 @@ class Transport(Protocol[DT]):
     def __init__(self, driver: DT) -> None:
         self._driver = driver
 
-    def push(self, source: str, dest: str) -> list[dict[str, str]]:
+    def push(self, source: str) -> list[dict[str, str]]:
         ...
 
     def invoke(self, path: str, args: list[str]) -> list[dict[str, str]]:

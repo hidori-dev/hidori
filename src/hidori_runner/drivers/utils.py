@@ -1,19 +1,7 @@
-import os
 import pathlib
-import platform
 import uuid
 
-
-def get_cache_home() -> pathlib.Path:
-    if platform.system() != "Linux":
-        # TODO: Support for macos and windows
-        raise NotImplementedError("Unsupported System")
-
-    home_path = pathlib.Path(os.environ.get("XDG_CACHE_HOME", "~/.cache"))
-    if home_path.exists():
-        return pathlib.Path.expanduser(home_path / "hidori")
-    else:
-        raise RuntimeError("cache home directory does not exist or path is invalid")
+from hidori_common.dirs import get_cache_home
 
 
 def get_pipelines_path() -> pathlib.Path:
