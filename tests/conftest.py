@@ -9,11 +9,16 @@ from hidori_core.modules import MODULES_REGISTRY
 from hidori_core.modules.base import Module
 from hidori_core.schema.base import Schema
 from hidori_core.utils.messenger import Messenger
+from hidori_runner.drivers.base import Driver
 from hidori_runner.transports.utils import get_messages
 
 
 class ExampleSchema(Schema):
     action: str
+
+
+class ExampleDriverSchema(Schema):
+    value: str
 
 
 class ExampleModule(Module, name="example", schema_cls=ExampleSchema):
@@ -25,11 +30,7 @@ class ExampleModule(Module, name="example", schema_cls=ExampleSchema):
         messenger.queue_success("ok")
 
 
-class ExampleDriver:
-    ...
-
-
-class ExampleTransport(Transport[ExampleDriver], name="example"):
+class ExampleTransport(Transport["ExampleDriver"], name="example"):
     def get_destination(self, source: str) -> str:
         return str(pathlib.Path("/example") / pathlib.Path(source).name)
 
@@ -56,12 +57,32 @@ class ExampleTransport(Transport[ExampleDriver], name="example"):
 
         for arg in args:
             out: str = getattr(out, arg)()
+        out += f"-{self._driver.value}"
         return [{"type": "success", "task": "example", "message": out}]
 
 
+class ExampleDriver(Driver, name="example"):
+    schema = ExampleDriverSchema()
+    transport_cls = ExampleTransport
+
+    def __init__(self, config: dict[str, str]) -> None:
+        super().__init__(config)
+        self.value = config["value"]
+
+
 @pytest.fixture(scope="session")
-def example_transport():
-    return ExampleTransport(ExampleDriver())
+def example_driver_cls():
+    return ExampleDriver
+
+
+@pytest.fixture(scope="session")
+def example_driver():
+    return ExampleDriver(config={"value": "42"})
+
+
+@pytest.fixture(scope="session")
+def example_transport(example_driver: ExampleDriver):
+    return ExampleTransport(example_driver)
 
 
 @pytest.fixture(scope="session")
