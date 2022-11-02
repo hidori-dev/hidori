@@ -14,7 +14,7 @@ jobs:
           submodules: true
 
       - name: Install poetry
-        run: pipx install poetry
+        run: pipx install poetry==1.2.2
 
       - name: Setup python
         uses: actions/setup-python@v4
