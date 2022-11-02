@@ -137,7 +137,11 @@ def test_executor_task_json_module_execution_error(
         "task": "example",
         "message": "runtime error",
     }
-    assert json.loads(messages[1])
+    traceback_message = json.loads(messages[1])
+    assert traceback_message["type"] == "error"
+    assert traceback_message["task"] == "example"
+    assert "Traceback (most recent call last)" in traceback_message["message"]
+    assert "raise RuntimeError()" in traceback_message["message"]
 
 
 @pytest.mark.parametrize("mock_argv", [["/hidori/executor.py", "foo"]], indirect=True)
