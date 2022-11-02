@@ -79,4 +79,4 @@ def test_transport_invoke_success_ok(
 ):
     fs.create_file("/example/hidori", contents="data")
     messages = example_transport.invoke("/example/hidori", ["upper"])
-    assert messages == [{"type": "success", "task": "example", "message": "DATA"}]
+    assert messages == [{"type": "success", "task": "example", "message": "DATA-42"}]
