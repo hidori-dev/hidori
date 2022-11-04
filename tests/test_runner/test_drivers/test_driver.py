@@ -21,3 +21,5 @@ def test_driver_invalid_config_init_error(example_driver_cls: type[Driver]):
 def test_driver_init_success(example_driver_cls: type[Driver]):
     driver = example_driver_cls(config={"value": "42"})
     assert getattr(driver, "value") == "42"
+    assert driver.user == "example-user"
+    assert driver.target_id == "example-target"

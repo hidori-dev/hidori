@@ -69,6 +69,14 @@ class ExampleDriver(Driver, name="example"):
         super().__init__(config)
         self.value = config["value"]
 
+    @property
+    def user(self) -> str:
+        return "example-user"
+
+    @property
+    def target_id(self) -> str:
+        return "example-target"
+
 
 @pytest.fixture(scope="session")
 def example_driver_cls():

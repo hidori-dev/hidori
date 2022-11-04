@@ -1,3 +1,4 @@
+import abc
 import dataclasses
 import importlib
 import json
@@ -35,6 +36,15 @@ class Driver:
 
         if name in DRIVERS_REGISTRY:
             raise RuntimeError(f"{name} driver is already registered.")
+
+        if cls.user.__isabstractmethod__:
+            raise NotImplementedError(
+                f"user property is not implemented in the driver {name}"
+            )
+        if cls.target_id.__isabstractmethod__:
+            raise NotImplementedError(
+                f"target_id property is not implemented in the driver {name}"
+            )
         # TODO: Verify that transport_cls matches the Transport protocol
         DRIVERS_REGISTRY[name] = cls
 
@@ -42,12 +52,14 @@ class Driver:
         self.schema.validate(config)
 
     @property
+    @abc.abstractmethod
     def user(self) -> str:
-        raise NotImplementedError()
+        ...
 
     @property
+    @abc.abstractmethod
     def target_id(self) -> str:
-        raise NotImplementedError()
+        ...
 
     def prepare(self, pipeline: Pipeline) -> PreparedPipeline:
         localpath = create_pipeline_dir(self.target_id)
