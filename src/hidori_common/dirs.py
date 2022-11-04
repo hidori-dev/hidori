@@ -3,14 +3,18 @@ import pathlib
 import platform
 
 
-def get_cache_home() -> pathlib.Path:
+def get_user_cache_path() -> pathlib.Path:
     if platform.system() != "Linux":
         # TODO: Support for macos and windows
         raise NotImplementedError("Unsupported System")
 
-    home_path = pathlib.Path.expanduser(
+    return pathlib.Path.expanduser(
         pathlib.Path(os.environ.get("XDG_CACHE_HOME", "~/.cache"))
     )
+
+
+def get_cache_home() -> pathlib.Path:
+    home_path = get_user_cache_path()
     if home_path.exists():
         return pathlib.Path.expanduser(home_path / "hidori")
     else:

@@ -1,9 +1,11 @@
 import os
 import pathlib
 import shutil
+from unittest.mock import Mock, patch
 
 import pytest
 
+from hidori_common.dirs import get_user_cache_path
 from hidori_common.typings import Transport
 from hidori_core.modules import MODULES_REGISTRY
 from hidori_core.modules.base import Module
@@ -101,3 +103,14 @@ def example_messenger():
 @pytest.fixture(scope="session")
 def example_module():
     return MODULES_REGISTRY["example"]
+
+
+@pytest.fixture(scope="function")
+def mock_uuid():
+    with patch("uuid.uuid4", return_value=Mock(hex=42)):
+        yield
+
+
+@pytest.fixture(scope="function")
+def setup_filesystem(fs):
+    get_user_cache_path().mkdir(parents=True)
