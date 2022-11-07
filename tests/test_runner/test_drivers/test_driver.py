@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 
 from hidori_core.schema.errors import SchemaError
-from hidori_runner.drivers.base import Driver
+from hidori_runner.drivers.base import DRIVERS_REGISTRY, Driver, create_driver
 from hidori_runner.drivers.utils import create_pipeline_dir
 
 
@@ -26,6 +26,21 @@ def test_driver_init_success(example_driver_cls: type[Driver]):
     assert getattr(driver, "value") == "42"
     assert driver.user == "example-user"
     assert driver.target_id == "example-target"
+
+
+def test_driver_create_not_found_error():
+    with pytest.raises(KeyError):
+        create_driver(target_data={"driver": "not-existing"})
+
+
+def test_driver_create_default_ssh_driver_success():
+    driver = create_driver(target_data={"ip": "127.0.0.1", "user": "foo"})
+    assert isinstance(driver, DRIVERS_REGISTRY["ssh"])
+
+
+def test_driver_create_example_driver_success(example_driver_cls: type[Driver]):
+    driver = create_driver(target_data={"driver": "example", "value": "42"})
+    assert isinstance(driver, DRIVERS_REGISTRY["example"])
 
 
 @pytest.mark.usefixtures("mock_uuid", "setup_filesystem")
