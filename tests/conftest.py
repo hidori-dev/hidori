@@ -1,3 +1,4 @@
+import importlib
 import os
 import pathlib
 import shutil
@@ -11,6 +12,7 @@ from hidori_core.modules import MODULES_REGISTRY
 from hidori_core.modules.base import Module
 from hidori_core.schema.base import Schema
 from hidori_core.utils.messenger import Messenger
+from hidori_pipelines.pipeline import Pipeline, TargetData
 from hidori_runner.drivers.base import Driver
 from hidori_runner.transports.utils import get_messages
 
@@ -105,6 +107,13 @@ def example_module():
     return MODULES_REGISTRY["example"]
 
 
+@pytest.fixture(scope="session")
+def example_pipeline(example_driver: ExampleDriver):
+    target_data: TargetData = {"target": "example", "driver": example_driver}
+    tasks_data = {"Hello world": {"module": "hello"}}
+    return Pipeline(target_data, tasks_data)
+
+
 @pytest.fixture(scope="function")
 def mock_uuid():
     with patch("uuid.uuid4", return_value=Mock(hex=42)):
@@ -113,4 +122,19 @@ def mock_uuid():
 
 @pytest.fixture(scope="function")
 def setup_filesystem(fs):
-    get_user_cache_path().mkdir(parents=True)
+    get_user_cache_path().mkdir(parents=True, exist_ok=False)
+
+    # TODO: remove typing-extensions setup when py37 drops
+    ty_exts_mod = importlib.import_module("typing_extensions")
+    pathlib.Path(ty_exts_mod.__file__).parent.mkdir(parents=True, exist_ok=False)
+    with open(ty_exts_mod.__file__, "w"):
+        ...
+
+    core_mod = importlib.import_module("hidori_core")
+    pathlib.Path(core_mod.__path__[0]).mkdir(parents=True, exist_ok=False)
+
+    runner_mod = importlib.import_module("hidori_runner")
+    executor_path = pathlib.Path(runner_mod.__path__[0]) / "executors/remote.py"
+    pathlib.Path(executor_path).parent.mkdir(parents=True, exist_ok=False)
+    with open(executor_path, "w"):
+        ...

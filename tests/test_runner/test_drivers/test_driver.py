@@ -3,8 +3,9 @@ from unittest.mock import Mock
 import pytest
 
 from hidori_core.schema.errors import SchemaError
+from hidori_pipelines.pipeline import Pipeline
 from hidori_runner.drivers.base import DRIVERS_REGISTRY, Driver, create_driver
-from hidori_runner.drivers.utils import create_pipeline_dir
+from hidori_runner.drivers.utils import create_pipeline_dir, get_pipelines_path
 
 
 def test_driver_empty_config_init_error(example_driver_cls: type[Driver]):
@@ -48,3 +49,15 @@ def test_driver_prepare_pipeline_dir_exists_error(example_driver: Driver):
     create_pipeline_dir(example_driver.target_id)
     with pytest.raises(FileExistsError):
         example_driver.prepare(Mock())
+
+
+@pytest.mark.usefixtures("mock_uuid", "setup_filesystem")
+def test_driver_prepare_pipeline_success(
+    example_driver: Driver, example_pipeline: Pipeline
+):
+    prepared_pipeline = example_driver.prepare(example_pipeline)
+    assert not prepared_pipeline.has_errors
+    assert prepared_pipeline.messages == []
+    expected_localpath = get_pipelines_path() / "example-target/hidori-42"
+    assert prepared_pipeline.localpath == expected_localpath
+    assert prepared_pipeline.transport.name == "example"
