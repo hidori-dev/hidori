@@ -31,5 +31,8 @@ jobs:
       - name: Run pre-commit linters and checks
         run: poetry run pre-commit run --all-files
 
+      - name: Check typing with mypy
+        run: poetry run mypy --strict
+
       - name: Run tests
         run: poetry run pytest tests
