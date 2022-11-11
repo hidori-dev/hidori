@@ -26,6 +26,8 @@ def exit_with_error(sys_messenger: Messenger, message: str, code: int = 1) -> No
 
 
 def main() -> None:
+    # TODO: Executor is not remote-specific but stdout (rename file to stdout.py)
+    # TODO: Move executors to core - that's where they belong
     system_messenger = Messenger("system")
     if len(sys.argv) != 2:
         exit_with_error(system_messenger, "internal error - invalid executor args")
