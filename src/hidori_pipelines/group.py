@@ -1,6 +1,5 @@
-from typing import Any, Iterable, Iterator
-
 import tomllib
+from typing import Any, Iterable, Iterator
 
 from hidori_core.schema import Schema
 from hidori_pipelines.pipeline import Pipeline, TargetData
