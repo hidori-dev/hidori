@@ -1,7 +1,6 @@
 import inspect
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any, Dict, Literal, Optional, Tuple, Type
 
-from hidori_core.compat.typing import Literal
 from hidori_core.schema.base import Field, Schema, field_from_annotation
 from hidori_core.schema.errors import ValidationError
 

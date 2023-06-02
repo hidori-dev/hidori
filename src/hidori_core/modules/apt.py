@@ -1,12 +1,11 @@
 import io
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 try:
     import apt
 except ImportError:
     ...
 
-from hidori_core.compat.typing import Literal
 from hidori_core.modules.base import Module
 from hidori_core.schema import Schema
 from hidori_core.schema.constraints import Requires

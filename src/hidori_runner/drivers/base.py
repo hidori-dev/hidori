@@ -83,13 +83,6 @@ class Driver:
         # TODO: Driver should only pick required modules.
         # Use MODULES_REGISTRY and delivered modules for that
         # It will also allow third parties to define their own modules.
-        # TODO: This (copying typing-extensions) is terrible.
-        # Delete as soon as 3.7 drops.
-        import typing_extensions
-
-        ty_exts_path = typing_extensions.__file__
-        tmp_ty_exts_path = localpath / "typing_extensions.py"
-        shutil.copyfile(ty_exts_path, tmp_ty_exts_path)
         self._copy_core_tree(localpath / "hidori_core")
 
     def prepare_executor(self, localpath: pathlib.Path) -> None:

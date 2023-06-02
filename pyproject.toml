@@ -33,7 +33,6 @@ repository = "https://github.com/hidori-dev/hidori"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-typing-extensions = "^4.4.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

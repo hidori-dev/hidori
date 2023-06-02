@@ -4,7 +4,7 @@
 [![CI](https://github.com/hidori-dev/hidori/actions/workflows/ci.yml/badge.svg)](https://github.com/hidori-dev/hidori/actions/workflows/ci.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/hidori-dev/hidori)
 
-Hidori is a modern, agentless, zero-dependency[^1][^2] variation on updating system state. General rule of thumb is that changes to the system are only done if the requested state is different from the actual state. Hidori modules are idempotent if the system is already in the desired state.
+Hidori is a modern, agentless, zero-dependency[^1] variation on updating system state. General rule of thumb is that changes to the system are only done if the requested state is different from the actual state. Hidori modules are idempotent if the system is already in the desired state.
 Every change in the target system is reported through the modules log as "affected".
 
 Hidori communicates with a target machine through appropriate protocol that is designated by the chosen driver.
@@ -14,7 +14,7 @@ Hidori communicates with a target machine through appropriate protocol that is d
 ## Install
 
 Depending on your environment you might wish to install Hidori globally or locally using chosen Python dependency manager such as poetry or pip.
-Ultimately, the choice is yours. Either way, Hidori is safe for your Python environment - it does not pull any dependencies from PyPI[^2].
+Ultimately, the choice is yours. Either way, Hidori is safe for your Python environment - it does not pull any dependencies from PyPI.
 
 Example using pip:
 ```sh
@@ -59,7 +59,6 @@ which includes all the code that runs on a target system can be expected to be s
 
 | Python Version |     EOL Date     |
 | -------------- | ---------------- |
-| 3.7            | July 2023        |
 | 3.8            | November 2024    |
 | 3.9            | November 2025    |
 | 3.10           | November 2026    |
@@ -73,7 +72,6 @@ poetry install
 ```
 
 [^1]: Except for the necessary runtime - python, and system libraries that are used by modules
-[^2]: typing-extensions are necessary until at least July 2023 when Python 3.7's support will end
 
 ## License
 

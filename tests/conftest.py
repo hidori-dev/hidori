@@ -124,12 +124,6 @@ def mock_uuid():
 def setup_filesystem(fs):
     get_user_cache_path().mkdir(parents=True, exist_ok=False)
 
-    # TODO: remove typing-extensions setup when py37 drops
-    ty_exts_mod = importlib.import_module("typing_extensions")
-    pathlib.Path(ty_exts_mod.__file__).parent.mkdir(parents=True, exist_ok=False)
-    with open(ty_exts_mod.__file__, "w"):
-        ...
-
     core_mod = importlib.import_module("hidori_core")
     pathlib.Path(core_mod.__path__[0]).mkdir(parents=True, exist_ok=False)
 
