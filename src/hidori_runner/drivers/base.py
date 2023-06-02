@@ -28,8 +28,7 @@ class PreparedPipeline:
 
 class Driver:
     schema: Schema
-    # TODO: https://github.com/python/mypy/issues/11871
-    transport_cls: type[Transport[Self]]  # type: ignore
+    transport_cls: type[Transport[Self]]
 
     def __init_subclass__(cls, *, name: str) -> None:
         super().__init_subclass__()
@@ -62,7 +61,7 @@ class Driver:
     def target_id(self) -> str:
         ...
 
-    def prepare(self, pipeline: Pipeline) -> PreparedPipeline:
+    def prepare(self: Self, pipeline: Pipeline) -> PreparedPipeline:
         localpath = create_pipeline_dir(self.target_id)
         self.prepare_modules(localpath)
         self.prepare_executor(localpath)
