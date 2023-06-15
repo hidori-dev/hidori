@@ -36,12 +36,11 @@ class Driver:
         if name in DRIVERS_REGISTRY:
             raise RuntimeError(f"{name} driver is already registered.")
 
-        # TODO: seems like mypy doesn't recognize the @abstractmethod
-        if cls.user.__isabstractmethod__:  # type: ignore
+        if getattr(cls.user, "__isabstractmethod__", True):
             raise NotImplementedError(
                 f"user property is not implemented in the driver {name}"
             )
-        if cls.target_id.__isabstractmethod__:  # type: ignore
+        if getattr(cls.target_id, "__isabstractmethod__", True):
             raise NotImplementedError(
                 f"target_id property is not implemented in the driver {name}"
             )
