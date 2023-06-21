@@ -34,6 +34,7 @@ jobs:
 
       - name: Run pre-commit linters and checks
         run: poetry run pre-commit run --all-files
+        if: ${{ matrix.python-version == '3.11.4' }}
 
       - name: Check typing with mypy
         run: poetry run mypy --strict
