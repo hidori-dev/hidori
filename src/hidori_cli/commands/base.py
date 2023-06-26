@@ -16,7 +16,7 @@ COMMAND_REGISTRY: defaultdict[str, dict[str, type[Command[Any]]]] = defaultdict(
 
 @dataclass
 class BaseData:
-    subparser_name: str
+    subparser_name: str | None
 
 
 class Command(Generic[TD]):
@@ -65,7 +65,7 @@ class Command(Generic[TD]):
                 parser_obj.add_argument(name, type=str, **kwargs)
 
     def run(self, parser_data: dict[str, Any]) -> None:
-        cmd_data = {k: parser_data[k] for k in self.data_cls.__dataclass_fields__}
+        cmd_data = {k: parser_data.get(k) for k in self.data_cls.__dataclass_fields__}
         data_obj = self.data_cls(**cmd_data)
         self.execute(data_obj)
 
