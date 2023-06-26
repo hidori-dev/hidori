@@ -5,6 +5,14 @@ NATIVE_FIELDS_BY_FIELD_NAME: dict[str, type["Field"]] = {}
 NATIVE_FIELDS_BY_FIELD_TYPE: dict[Any, type["Field"]] = {}
 
 
+def get_native_field_by_name_or_type(
+    field_name: str, field_type: Any
+) -> type["Field"] | None:
+    return NATIVE_FIELDS_BY_FIELD_NAME.get(
+        field_name
+    ) or NATIVE_FIELDS_BY_FIELD_TYPE.get(field_type)
+
+
 class Field:
     action: str | type[argparse.Action]
 

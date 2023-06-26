@@ -6,7 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
-from hidori_cli.fields import NATIVE_FIELDS_BY_FIELD_NAME, NATIVE_FIELDS_BY_FIELD_TYPE
+from hidori_cli.fields import get_native_field_by_name_or_type
 
 TD = TypeVar("TD", bound="BaseData")
 
@@ -50,12 +50,7 @@ class Command(Generic[TD]):
             if help_text:
                 kwargs["help"] = help_text
 
-            field_cls = NATIVE_FIELDS_BY_FIELD_NAME.get(field_name)
-            if field_cls:
-                field_cls.add_to_parser(parser_obj, field_name, field.metadata)
-                continue
-
-            field_cls = NATIVE_FIELDS_BY_FIELD_TYPE.get(field.type)
+            field_cls = get_native_field_by_name_or_type(field_name, field.type)
             if field_cls:
                 field_cls.add_to_parser(parser_obj, field_name, field.metadata)
                 continue
