@@ -34,6 +34,10 @@ class BaseCLIApplication:
 
     def run(self) -> None:
         parser_data = self.parser.parse_args()
-        command_name: str = parser_data.subparser_name or BASE_COMMAND_NAME
+        command_name: str = (
+            getattr(parser_data, "subparser_name", BASE_COMMAND_NAME)
+            or BASE_COMMAND_NAME
+        )
+
         command = self._commands[command_name]
         command.run(parser_data.__dict__)
