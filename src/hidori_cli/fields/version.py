@@ -8,7 +8,10 @@ from hidori_common.cli import get_version
 class VersionField(Field, field_name="version"):
     @classmethod
     def add_to_parser(
-        cls, parser_obj: argparse.ArgumentParser, field_metadata: Mapping[str, Any]
+        cls,
+        parser_obj: argparse.ArgumentParser,
+        field_name: str,
+        field_metadata: Mapping[str, Any],
     ) -> None:
         parser_obj.add_argument(
             "-V",
