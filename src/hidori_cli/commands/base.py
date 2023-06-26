@@ -6,7 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
-from hidori_common.cli import get_version
+from hidori_cli.fields import NATIVE_FIELDS_BY_FIELD_NAME
 
 TD = TypeVar("TD", bound="BaseData")
 
@@ -45,18 +45,14 @@ class Command(Generic[TD]):
                 continue
 
             kwargs = {}
-            help_text = field.metadata.get("help", "")
+            help_text = field.metadata.get("help")
             is_positional = field.metadata.get("is_positional", True)
             if help_text:
                 kwargs["help"] = help_text
 
-            if field_name == "version":
-                parser_obj.add_argument(
-                    "-V",
-                    "--version",
-                    action="version",
-                    version=f"%(prog)s {get_version()}",
-                )
+            field_cls = NATIVE_FIELDS_BY_FIELD_NAME.get(field_name)
+            if field_cls:
+                field_cls.add_to_parser(parser_obj, field.metadata)
                 continue
 
             if field.type in (bool, "bool"):
