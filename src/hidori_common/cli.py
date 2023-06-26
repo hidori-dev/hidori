@@ -29,7 +29,7 @@ STATUS_MAP = {
 }
 
 
-def get_version():
+def get_version() -> str:
     return importlib.metadata.version("hidori")
 
 
