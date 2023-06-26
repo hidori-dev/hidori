@@ -14,13 +14,22 @@ class BaseCLIApplication:
         self._register_commands()
 
     def _register_commands(self) -> None:
-        subparsers = self.parser.add_subparsers(dest="subparser_name")
+        command_classes = COMMAND_REGISTRY[self.name].values()
+        # Conditionally create subparsers for the application parser only
+        # if there are any subcommands defined for this application.
+        if any([obj.name != BASE_COMMAND_NAME for obj in command_classes]):
+            subparsers = self.parser.add_subparsers(dest="subparser_name")
+        else:
+            subparsers = None
+
         for command_cls in COMMAND_REGISTRY[self.name].values():
-            parser_obj = (
-                self.parser
-                if command_cls.name == BASE_COMMAND_NAME
-                else subparsers.add_parser(command_cls.name, help=command_cls.__doc__)
-            )
+            if command_cls.name == BASE_COMMAND_NAME:
+                parser_obj = self.parser
+            else:
+                assert subparsers is not None
+                parser_obj = subparsers.add_parser(
+                    command_cls.name, help=command_cls.__doc__
+                )
             self._commands[command_cls.name] = command_cls(parser_obj)
 
     def run(self) -> None:
