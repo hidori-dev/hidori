@@ -16,7 +16,7 @@ DRIVERS_REGISTRY: dict[str, type["Driver"]] = {}
 
 
 @dataclasses.dataclass
-class PreparedPipeline:
+class PreparedExchange:
     localpath: pathlib.Path
     transport: Transport[Any]
     messages: list[dict[str, str]] = dataclasses.field(default_factory=list)
@@ -60,23 +60,21 @@ class Driver:
     def target_id(self) -> str:
         ...
 
-    def prepare(self: Self, pipeline: Pipeline) -> PreparedPipeline:
+    def prepare_pipeline(self: Self, pipeline: Pipeline) -> PreparedExchange:
         localpath = create_pipeline_dir(self.target_id)
         self.prepare_modules(localpath)
         self.prepare_executor(localpath)
         self.prepare_tasks(localpath, pipeline)
-        return PreparedPipeline(localpath=localpath, transport=self.transport_cls(self))
+        return PreparedExchange(localpath=localpath, transport=self.transport_cls(self))
 
-    def finalize(self, prepared_pipeline: PreparedPipeline) -> None:
-        transport = prepared_pipeline.transport
-        source = str(prepared_pipeline.localpath)
-        prepared_pipeline.messages.extend(transport.push(source))
+    def finalize(self, exchange: PreparedExchange) -> None:
+        transport = exchange.transport
+        source = str(exchange.localpath)
+        exchange.messages.extend(transport.push(source))
 
-    def invoke_executor(
-        self, prepared_pipeline: PreparedPipeline, task_id: str
-    ) -> None:
-        transport = prepared_pipeline.transport
-        prepared_pipeline.messages.extend(transport.invoke("executor.py", [task_id]))
+    def invoke_executor(self, exchange: PreparedExchange, task_id: str) -> None:
+        transport = exchange.transport
+        exchange.messages.extend(transport.invoke("executor.py", [task_id]))
 
     def prepare_modules(self, localpath: pathlib.Path) -> None:
         # TODO: Driver should only pick required modules.

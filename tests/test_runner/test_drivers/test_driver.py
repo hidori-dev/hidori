@@ -48,16 +48,16 @@ def test_driver_create_example_driver_success(example_driver_cls: type[Driver]):
 def test_driver_prepare_pipeline_dir_exists_error(example_driver: Driver):
     create_pipeline_dir(example_driver.target_id)
     with pytest.raises(FileExistsError):
-        example_driver.prepare(Mock())
+        example_driver.prepare_pipeline(Mock())
 
 
 @pytest.mark.usefixtures("mock_uuid", "setup_filesystem")
 def test_driver_prepare_pipeline_success(
     example_driver: Driver, example_pipeline: Pipeline
 ):
-    prepared_pipeline = example_driver.prepare(example_pipeline)
-    assert not prepared_pipeline.has_errors
-    assert prepared_pipeline.messages == []
+    exchange = example_driver.prepare_pipeline(example_pipeline)
+    assert not exchange.has_errors
+    assert exchange.messages == []
     expected_localpath = get_pipelines_path() / "example-target/hidori-42"
-    assert prepared_pipeline.localpath == expected_localpath
-    assert prepared_pipeline.transport.name == "example"
+    assert exchange.localpath == expected_localpath
+    assert exchange.transport.name == "example"

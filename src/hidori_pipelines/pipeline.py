@@ -3,7 +3,7 @@ from typing import Any, TypedDict
 
 from hidori_common import ConsolePrinter
 from hidori_core.modules import MODULES_REGISTRY
-from hidori_runner.drivers.base import Driver, PreparedPipeline
+from hidori_runner.drivers.base import Driver, PreparedExchange
 
 PIPELINE_MODULES_REGISTRY: dict[str, type["PipelineStep"]] = {}
 
@@ -49,7 +49,7 @@ class TargetData(TypedDict):
 class Pipeline:
     def __init__(self, target_data: TargetData, tasks_data: dict[str, Any]) -> None:
         self._steps: list[PipelineStep] = self._create_steps(tasks_data)
-        self._prepared_pipeline: PreparedPipeline | None = None
+        self._exchange: PreparedExchange | None = None
         self.target = target_data["target"]
         self.driver = target_data["driver"]
         self._printer = ConsolePrinter(user=self.driver.user, target=self.target)
@@ -70,24 +70,24 @@ class Pipeline:
         return steps
 
     def prepare(self) -> None:
-        self._prepared_pipeline = self.driver.prepare(self)
+        self._exchange = self.driver.prepare_pipeline(self)
 
     def run(self) -> None:
-        if not self._prepared_pipeline:
+        if not self._exchange:
             raise RuntimeError("pipeline is not prepared")
 
-        self.driver.finalize(self._prepared_pipeline)
+        self.driver.finalize(self._exchange)
         self.handle_messages()
         for pipeline_step in self.steps:
-            self.driver.invoke_executor(self._prepared_pipeline, pipeline_step.task_id)
+            self.driver.invoke_executor(self._exchange, pipeline_step.task_id)
             self.handle_messages()
 
         self._printer.print_summary()
 
     def handle_messages(self) -> None:
-        if not self._prepared_pipeline:
+        if not self._exchange:
             raise RuntimeError("pipeline is not prepared")
 
-        if self._prepared_pipeline.messages:
-            self._printer.print_all(self._prepared_pipeline.messages)
-            self._prepared_pipeline.messages.clear()
+        if self._exchange.messages:
+            self._printer.print_all(self._exchange.messages)
+            self._exchange.messages.clear()
