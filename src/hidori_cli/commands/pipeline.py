@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-import hidori_core
 from hidori_cli.commands.base import BaseData, Command
 
 
@@ -15,5 +14,4 @@ class PipelineCommand(Command[PipelineData]):
     data_cls = PipelineData
 
     def execute(self, data: PipelineData) -> None:
-        if data.version:
-            print(hidori_core.__version__)
+        ...

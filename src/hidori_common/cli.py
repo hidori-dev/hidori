@@ -1,4 +1,5 @@
 import datetime
+import importlib.metadata
 
 
 class Colors:
@@ -26,6 +27,10 @@ STATUS_MAP = {
     "affected": "AFFECTED",
     "info": "INFO",
 }
+
+
+def get_version():
+    return importlib.metadata.version("hidori")
 
 
 class ConsolePrinter:
