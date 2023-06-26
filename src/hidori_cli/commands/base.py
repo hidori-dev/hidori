@@ -6,7 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
-from hidori_cli.fields import NATIVE_FIELDS_BY_FIELD_NAME
+from hidori_cli.fields import NATIVE_FIELDS_BY_FIELD_NAME, NATIVE_FIELDS_BY_FIELD_TYPE
 
 TD = TypeVar("TD", bound="BaseData")
 
@@ -52,7 +52,12 @@ class Command(Generic[TD]):
 
             field_cls = NATIVE_FIELDS_BY_FIELD_NAME.get(field_name)
             if field_cls:
-                field_cls.add_to_parser(parser_obj, field.metadata)
+                field_cls.add_to_parser(parser_obj, field_name, field.metadata)
+                continue
+
+            field_cls = NATIVE_FIELDS_BY_FIELD_TYPE.get(field.type)
+            if field_cls:
+                field_cls.add_to_parser(parser_obj, field_name, field.metadata)
                 continue
 
             if field.type in (bool, "bool"):
