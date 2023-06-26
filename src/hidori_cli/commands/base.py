@@ -46,7 +46,6 @@ class Command(Generic[TD]):
 
             kwargs = {}
             help_text = field.metadata.get("help")
-            is_positional = field.metadata.get("is_positional", True)
             if help_text:
                 kwargs["help"] = help_text
 
@@ -59,10 +58,6 @@ class Command(Generic[TD]):
                 parser_obj.add_argument(
                     f"--{field.name}", action="store_true", **kwargs
                 )
-
-            if field.type in (str, "str"):
-                name = field.name if is_positional else f"--{field_name}"
-                parser_obj.add_argument(name, type=str, **kwargs)
 
     def run(self, parser_data: dict[str, Any]) -> None:
         cmd_data = {k: parser_data.get(k) for k in self.data_cls.__dataclass_fields__}
