@@ -8,7 +8,7 @@ from typing import Any, Self
 
 from hidori_common.typings import Pipeline, Transport
 from hidori_core.schema.base import Schema
-from hidori_runner.drivers.utils import create_pipeline_dir
+from hidori_runner.drivers.utils import create_call_dir, create_pipeline_dir
 
 DEFAULT_DRIVER = "ssh"
 
@@ -67,6 +67,13 @@ class Driver:
         self.prepare_tasks(localpath, pipeline)
         return PreparedExchange(localpath=localpath, transport=self.transport_cls(self))
 
+    def prepare_call(self, task_id: str, task_json: dict[str, Any]) -> PreparedExchange:
+        localpath = create_call_dir(self.target_id)
+        self.prepare_modules(localpath)
+        self.prepare_executor(localpath)
+        self.prepare_call_task(localpath, task_id, task_json)
+        return PreparedExchange(localpath=localpath, transport=self.transport_cls(self))
+
     def finalize(self, exchange: PreparedExchange) -> None:
         transport = exchange.transport
         source = str(exchange.localpath)
@@ -93,6 +100,13 @@ class Driver:
             local_task_path = localpath / f"task-{step.task_id}.json"
             with open(local_task_path, "w") as task_file:
                 json.dump(step.task_json, task_file)
+
+    def prepare_call_task(
+        self, localpath: pathlib.Path, task_id: str, task_json: dict[str, Any]
+    ) -> None:
+        local_task_path = localpath / f"task-{task_id}.json"
+        with open(local_task_path, "w") as task_file:
+            json.dump(task_json, task_file)
 
     def _copy_core_tree(self, dest: pathlib.Path) -> None:
         core_module = importlib.import_module("hidori_core")
