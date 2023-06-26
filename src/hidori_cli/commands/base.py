@@ -44,20 +44,13 @@ class Command(Generic[TD]):
             if field_name == "subparser_name":
                 continue
 
-            kwargs = {}
-            help_text = field.metadata.get("help")
-            if help_text:
-                kwargs["help"] = help_text
-
             field_cls = get_native_field_by_name_or_type(field_name, field.type)
-            if field_cls:
-                field_cls.add_to_parser(parser_obj, field_name, field.metadata)
-                continue
-
-            if field.type in (bool, "bool"):
-                parser_obj.add_argument(
-                    f"--{field.name}", action="store_true", **kwargs
+            if field_cls is None:
+                raise RuntimeError(
+                    f"unable to find native field for field name {field_name} "
+                    f"and type {field.type}"
                 )
+            field_cls.add_to_parser(parser_obj, field_name, field.metadata)
 
     def run(self, parser_data: dict[str, Any]) -> None:
         cmd_data = {k: parser_data.get(k) for k in self.data_cls.__dataclass_fields__}
