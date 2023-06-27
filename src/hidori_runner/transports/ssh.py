@@ -45,7 +45,7 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
         )
         # TO THE STARS!
         success, output = run_command(cmd)
-        return get_messages(output, self.name, require_json=success)
+        return get_messages(output, self.name, ignore_parse_error=success)
 
     def invoke(self, path: str, args: list[str]) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
@@ -58,4 +58,4 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
         )
         cmd.extend(args)
         success, output = run_command(cmd)
-        return get_messages(output, self.name, require_json=success)
+        return get_messages(output, self.name, ignore_parse_error=success)

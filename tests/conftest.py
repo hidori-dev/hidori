@@ -44,9 +44,9 @@ class ExampleTransport(Transport["ExampleDriver"], name="example"):
         try:
             shutil.copy(source, dest)
         except FileNotFoundError:
-            return get_messages("file not found", self.name, require_json=False)
+            return get_messages("file not found", self.name, ignore_parse_error=False)
         except PermissionError:
-            return get_messages("no permission", self.name, require_json=False)
+            return get_messages("no permission", self.name, ignore_parse_error=False)
 
         return []
 
@@ -55,9 +55,9 @@ class ExampleTransport(Transport["ExampleDriver"], name="example"):
             with open(path) as f:
                 out = f.read()
         except FileNotFoundError:
-            return get_messages("file not found", self.name, require_json=False)
+            return get_messages("file not found", self.name, ignore_parse_error=False)
         except PermissionError:
-            return get_messages("no permission", self.name, require_json=False)
+            return get_messages("no permission", self.name, ignore_parse_error=False)
 
         for arg in args:
             out: str = getattr(out, arg)()
