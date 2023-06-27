@@ -4,6 +4,7 @@ import importlib
 import json
 import pathlib
 import shutil
+import uuid
 from typing import Any, Self
 
 from hidori_common.typings import Pipeline, Transport
@@ -17,9 +18,14 @@ DRIVERS_REGISTRY: dict[str, type["Driver"]] = {}
 
 @dataclasses.dataclass
 class PreparedExchange:
+    id: str
     localpath: pathlib.Path
     transport: Transport[Any]
     messages: list[dict[str, str]] = dataclasses.field(default_factory=list)
+
+    @classmethod
+    def gen_id(cls) -> str:
+        return uuid.uuid4().hex
 
     @property
     def has_errors(self) -> bool:
@@ -61,29 +67,36 @@ class Driver:
         ...
 
     def prepare_pipeline(self: Self, pipeline: Pipeline) -> PreparedExchange:
-        localpath = create_pipeline_dir(self.target_id)
+        exchange_id = PreparedExchange.gen_id()
+        localpath = create_pipeline_dir(exchange_id, self.target_id)
         self.prepare_modules(localpath)
         self.prepare_executor(localpath)
         self.prepare_tasks(localpath, pipeline)
-        return PreparedExchange(localpath=localpath, transport=self.transport_cls(self))
+        return PreparedExchange(
+            id=exchange_id, localpath=localpath, transport=self.transport_cls(self)
+        )
 
     def prepare_call(
         self: Self, task_id: str, task_json: dict[str, Any]
     ) -> PreparedExchange:
-        localpath = create_call_dir(self.target_id)
+        exchange_id = PreparedExchange.gen_id()
+        localpath = create_call_dir(exchange_id, self.target_id)
         self.prepare_modules(localpath)
         self.prepare_executor(localpath)
         self.prepare_call_task(localpath, task_id, task_json)
-        return PreparedExchange(localpath=localpath, transport=self.transport_cls(self))
+        return PreparedExchange(
+            id=exchange_id, localpath=localpath, transport=self.transport_cls(self)
+        )
 
     def finalize(self, exchange: PreparedExchange) -> None:
         transport = exchange.transport
-        source = str(exchange.localpath)
-        exchange.messages.extend(transport.push(source))
+        push_messages = transport.push(exchange.id, exchange.localpath)
+        exchange.messages.extend(push_messages)
 
     def invoke_executor(self, exchange: PreparedExchange, task_id: str) -> None:
         transport = exchange.transport
-        exchange.messages.extend(transport.invoke("executor.py", [task_id]))
+        invoke_messages = transport.invoke(exchange.id, "executor.py", [task_id])
+        exchange.messages.extend(invoke_messages)
 
     def prepare_modules(self, localpath: pathlib.Path) -> None:
         # TODO: Driver should only pick required modules.

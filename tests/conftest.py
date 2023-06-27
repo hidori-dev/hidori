@@ -116,7 +116,7 @@ def example_pipeline(example_driver: ExampleDriver):
 
 @pytest.fixture(scope="function")
 def mock_uuid():
-    with patch("uuid.uuid4", return_value=Mock(hex=42)):
+    with patch("uuid.uuid4", return_value=Mock(hex="42")):
         yield
 
 

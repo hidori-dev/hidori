@@ -29,33 +29,37 @@ def run_command(popen_cmd: list[str]) -> tuple[bool, str]:
     return results.returncode == 0, output.strip()
 
 
-def get_destination() -> pathlib.Path:
-    return get_tmp_home() / "hidori"
+def get_exchange_dir_path(exchange_id: str) -> pathlib.Path:
+    return get_tmp_home() / f"hidori-exchange-{exchange_id}"
 
 
 class SSHTransport(Transport["SSHDriver"], name="ssh"):
-    def push(self, source: str) -> list[dict[str, str]]:
+    def push(self, exchange_id: str, source: pathlib.Path) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
         ssh_target = self._driver.ssh_target
         ssh_port = self._driver.ssh_port
+        exchange_path = get_exchange_dir_path(exchange_id)
 
         cmd = (
-            f"scp {SSH_OPTIONS} -qr -P {ssh_port} {source} "
-            f"{ssh_user}@{ssh_target}:{get_destination()}".split()
-        )
+            f"scp {SSH_OPTIONS} -prq -P {ssh_port} {source} "
+            f"{ssh_user}@{ssh_target}:{exchange_path}"
+        ).split()
         # TO THE STARS!
         success, output = run_command(cmd)
         return get_messages(output, self.name, ignore_parse_error=success)
 
-    def invoke(self, path: str, args: list[str]) -> list[dict[str, str]]:
+    def invoke(
+        self, exchange_id: str, path: str, args: list[str]
+    ) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
         ssh_target = self._driver.ssh_target
         ssh_port = self._driver.ssh_port
+        invoked_path = get_exchange_dir_path(exchange_id) / path
 
         cmd = (
             f"ssh {SSH_OPTIONS} -qt -p {ssh_port} "
-            f"{ssh_user}@{ssh_target} python3 {get_destination() / path}".split()
-        )
+            f"{ssh_user}@{ssh_target} python3 {invoked_path}"
+        ).split()
         cmd.extend(args)
         success, output = run_command(cmd)
         return get_messages(output, self.name, ignore_parse_error=success)

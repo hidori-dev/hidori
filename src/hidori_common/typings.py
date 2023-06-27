@@ -1,3 +1,4 @@
+import pathlib
 from typing import Any, ClassVar, Iterable, Protocol, TypeVar
 
 DT = TypeVar("DT", bound="Driver")
@@ -40,8 +41,10 @@ class Transport(Protocol[DT]):
     def __init__(self, driver: DT) -> None:
         self._driver = driver
 
-    def push(self, source: str) -> list[dict[str, str]]:
+    def push(self, exchange_id: str, source: pathlib.Path) -> list[dict[str, str]]:
         ...
 
-    def invoke(self, path: str, args: list[str]) -> list[dict[str, str]]:
+    def invoke(
+        self, exchange_id: str, path: str, args: list[str]
+    ) -> list[dict[str, str]]:
         ...
