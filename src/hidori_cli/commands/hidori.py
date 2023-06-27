@@ -12,7 +12,7 @@ class HidoriData(BaseData):
         metadata={"help": "user and target information, e.g. user@host"}
     )
     module: str = field(metadata={"help": "module to be executed"})
-    extra_data: dict = field(metadata={"help": "module data if any"})
+    extra_data: list[str] = field(metadata={"help": "module data if any"})
     version: bool = field(
         default=False, metadata={"help": "show the installed version and exit"}
     )

@@ -67,7 +67,9 @@ class Driver:
         self.prepare_tasks(localpath, pipeline)
         return PreparedExchange(localpath=localpath, transport=self.transport_cls(self))
 
-    def prepare_call(self, task_id: str, task_json: dict[str, Any]) -> PreparedExchange:
+    def prepare_call(
+        self: Self, task_id: str, task_json: dict[str, Any]
+    ) -> PreparedExchange:
         localpath = create_call_dir(self.target_id)
         self.prepare_modules(localpath)
         self.prepare_executor(localpath)
