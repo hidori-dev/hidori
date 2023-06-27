@@ -2,6 +2,9 @@
 .idea/
 .vscode/
 
+# Development tools
+.python-version
+
 # Build files
 dist/
 
