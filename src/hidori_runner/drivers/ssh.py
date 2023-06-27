@@ -7,7 +7,7 @@ from hidori_runner.drivers.base import Driver
 
 class SSHSchema(Schema):
     # TODO: Add support for remote_path config val
-    ip: str
+    target: str
     user: str
     port: Optional[str]
 
@@ -18,7 +18,7 @@ class SSHDriver(Driver, name="ssh"):
 
     def __init__(self, config: dict[str, str]) -> None:
         super().__init__(config)
-        self.ssh_ip = config["ip"]
+        self.ssh_target = config["target"]
         self.ssh_user = config["user"]
         self.ssh_port = config.get("port", "22")
 
@@ -28,4 +28,4 @@ class SSHDriver(Driver, name="ssh"):
 
     @property
     def target_id(self) -> str:
-        return self.ssh_ip
+        return self.ssh_target

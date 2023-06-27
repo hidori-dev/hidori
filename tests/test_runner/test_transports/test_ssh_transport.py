@@ -31,7 +31,7 @@ def subproc_func_factory(retcode: int, stdout: str = "", stderr: str = ""):
 
 @pytest.fixture(scope="module")
 def ssh_transport():
-    driver = Mock(ssh_user="user", ssh_ip="127.0.0.1", ssh_port="50022")
+    driver = Mock(ssh_user="user", ssh_target="127.0.0.1", ssh_port="50022")
     return SSHTransport(driver)
 
 

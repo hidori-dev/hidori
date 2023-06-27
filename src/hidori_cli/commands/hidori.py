@@ -27,7 +27,7 @@ class HidoriCommand(Command[HidoriData]):
         user, target = data.destination.split("@")
 
         printer = ConsolePrinter(user=user, target=target)
-        driver = create_driver({"user": user, "ip": target})
+        driver = create_driver({"user": user, "target": target})
         extra_data = {}
         for entry in data.extra_data:
             name, value = entry.split("=")

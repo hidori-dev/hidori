@@ -5,9 +5,9 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/hidori-dev/hidori)
 
 Hidori is a modern, agentless, zero-dependency[^1] variation on updating system state. General rule of thumb is that changes to the system are only done if the requested state is different from the actual state. Hidori modules are idempotent if the system is already in the desired state.
-Every change in the target system is reported through the modules log as "affected".
+Every change in the destination system is reported through the modules log as "affected".
 
-Hidori communicates with a target machine through appropriate protocol that is designated by the chosen driver.
+Hidori communicates with destination machines through appropriate protocol that is designated by the chosen driver.
 
 ![Hidori demo](https://raw.githubusercontent.com/hidori-dev/hidori/main/assets/hidori_demo.gif)
 
@@ -23,13 +23,13 @@ pip install hidori
 
 ## Hello World
 
-With Hidori installed you need a single TOML file that provides where and what should be done. A simple 'hello world' example assuming that some machine is available at the given IP address:
+With Hidori installed you need a single TOML file that provides where and what should be done. A simple 'hello world' example assuming that some machine is available at the given target:
 
 ```toml
-[targets]
+[destinations]
 
-  [targets.vm]
-  ip = "192.168.122.31"
+  [destinations.vm]
+  target = "192.168.122.31"
   user = "root"
 
 [tasks]
@@ -54,8 +54,8 @@ The result on my machine is:
 ## Support
 
 In general, Hidori is based on Python 3.11, but `hidori_core` runs with any version of Python that is still supported.
-Reason for that is vast majority of target systems don't have the latest Python runtime installed, so therefore `hidori_core`
-which includes all the code that runs on a target system can be expected to be supported according to the following table:
+Reason for that is vast majority of destination systems don't have the latest Python runtime installed, so therefore `hidori_core`
+which includes all the code that runs on a destination system can be expected to be supported according to the following table:
 
 | Python Version |     EOL Date     |
 | -------------- | ---------------- |

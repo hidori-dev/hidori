@@ -36,12 +36,12 @@ def get_destination() -> pathlib.Path:
 class SSHTransport(Transport["SSHDriver"], name="ssh"):
     def push(self, source: str) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
-        ssh_ip = self._driver.ssh_ip
+        ssh_target = self._driver.ssh_target
         ssh_port = self._driver.ssh_port
 
         cmd = (
             f"scp {SSH_OPTIONS} -qr -P {ssh_port} {source} "
-            f"{ssh_user}@{ssh_ip}:{get_destination()}".split()
+            f"{ssh_user}@{ssh_target}:{get_destination()}".split()
         )
         # TO THE STARS!
         success, output = run_command(cmd)
@@ -49,12 +49,12 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
 
     def invoke(self, path: str, args: list[str]) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
-        ssh_ip = self._driver.ssh_ip
+        ssh_target = self._driver.ssh_target
         ssh_port = self._driver.ssh_port
 
         cmd = (
             f"ssh {SSH_OPTIONS} -qt -p {ssh_port} "
-            f"{ssh_user}@{ssh_ip} python3 {get_destination() / path}".split()
+            f"{ssh_user}@{ssh_target} python3 {get_destination() / path}".split()
         )
         cmd.extend(args)
         success, output = run_command(cmd)

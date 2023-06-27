@@ -12,7 +12,7 @@ from hidori_core.modules import MODULES_REGISTRY
 from hidori_core.modules.base import Module
 from hidori_core.schema.base import Schema
 from hidori_core.utils.messenger import Messenger
-from hidori_pipelines.pipeline import Pipeline, TargetData
+from hidori_pipelines.pipeline import DestinationData, Pipeline
 from hidori_runner.drivers.base import Driver
 from hidori_runner.transports.utils import get_messages
 
@@ -109,9 +109,9 @@ def example_module():
 
 @pytest.fixture(scope="session")
 def example_pipeline(example_driver: ExampleDriver):
-    target_data: TargetData = {"target": "example", "driver": example_driver}
+    destination_data: DestinationData = {"target": "example", "driver": example_driver}
     tasks_data = {"Hello world": {"module": "hello"}}
-    return Pipeline(target_data, tasks_data)
+    return Pipeline(destination_data, tasks_data)
 
 
 @pytest.fixture(scope="function")

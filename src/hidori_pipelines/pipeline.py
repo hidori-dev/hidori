@@ -41,17 +41,19 @@ class DefaultPipelineStep(PipelineStep, module_name="*"):
     ...
 
 
-class TargetData(TypedDict):
+class DestinationData(TypedDict):
     target: str
     driver: Driver
 
 
 class Pipeline:
-    def __init__(self, target_data: TargetData, tasks_data: dict[str, Any]) -> None:
+    def __init__(
+        self, destination_data: DestinationData, tasks_data: dict[str, Any]
+    ) -> None:
         self._steps: list[PipelineStep] = self._create_steps(tasks_data)
         self._exchange: PreparedExchange | None = None
-        self.target = target_data["target"]
-        self.driver = target_data["driver"]
+        self.target = destination_data["target"]
+        self.driver = destination_data["driver"]
         self._printer = ConsolePrinter(user=self.driver.user, target=self.target)
 
     @property

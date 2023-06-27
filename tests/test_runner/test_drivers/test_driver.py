@@ -31,16 +31,16 @@ def test_driver_init_success(example_driver_cls: type[Driver]):
 
 def test_driver_create_not_found_error():
     with pytest.raises(KeyError):
-        create_driver(target_data={"driver": "not-existing"})
+        create_driver(destination_data={"driver": "not-existing"})
 
 
 def test_driver_create_default_ssh_driver_success():
-    driver = create_driver(target_data={"ip": "127.0.0.1", "user": "foo"})
+    driver = create_driver(destination_data={"target": "127.0.0.1", "user": "foo"})
     assert isinstance(driver, DRIVERS_REGISTRY["ssh"])
 
 
 def test_driver_create_example_driver_success(example_driver_cls: type[Driver]):
-    driver = create_driver(target_data={"driver": "example", "value": "42"})
+    driver = create_driver(destination_data={"driver": "example", "value": "42"})
     assert isinstance(driver, DRIVERS_REGISTRY["example"])
 
 
