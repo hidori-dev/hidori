@@ -78,7 +78,7 @@ class ExampleDriver(Driver, name="example"):
         return "example-user"
 
     @property
-    def target_id(self) -> str:
+    def target(self) -> str:
         return "example-target"
 
 

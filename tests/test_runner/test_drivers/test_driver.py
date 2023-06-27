@@ -26,7 +26,7 @@ def test_driver_init_success(example_driver_cls: type[Driver]):
     driver = example_driver_cls(config={"value": "42"})
     assert getattr(driver, "value") == "42"
     assert driver.user == "example-user"
-    assert driver.target_id == "example-target"
+    assert driver.target == "example-target"
 
 
 def test_driver_create_not_found_error():
@@ -46,7 +46,7 @@ def test_driver_create_example_driver_success(example_driver_cls: type[Driver]):
 
 @pytest.mark.usefixtures("mock_uuid", "setup_filesystem")
 def test_driver_prepare_pipeline_dir_exists_error(example_driver: Driver):
-    create_pipeline_dir("42", example_driver.target_id)
+    create_pipeline_dir("42", example_driver.target)
     with pytest.raises(FileExistsError):
         example_driver.prepare_pipeline(Mock())
 

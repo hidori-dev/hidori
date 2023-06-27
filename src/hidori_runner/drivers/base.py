@@ -46,9 +46,9 @@ class Driver:
             raise NotImplementedError(
                 f"user property is not implemented in the driver {name}"
             )
-        if getattr(cls.target_id, "__isabstractmethod__", True):
+        if getattr(cls.target, "__isabstractmethod__", True):
             raise NotImplementedError(
-                f"target_id property is not implemented in the driver {name}"
+                f"target property is not implemented in the driver {name}"
             )
         # TODO: Verify that transport_cls matches the Transport protocol
         DRIVERS_REGISTRY[name] = cls
@@ -63,12 +63,12 @@ class Driver:
 
     @property
     @abc.abstractmethod
-    def target_id(self) -> str:
+    def target(self) -> str:
         ...
 
     def prepare_pipeline(self: Self, pipeline: Pipeline) -> PreparedExchange:
         exchange_id = PreparedExchange.gen_id()
-        localpath = create_pipeline_dir(exchange_id, self.target_id)
+        localpath = create_pipeline_dir(exchange_id, self.target)
         self.prepare_modules(localpath)
         self.prepare_executor(localpath)
         self.prepare_tasks(localpath, pipeline)
@@ -80,7 +80,7 @@ class Driver:
         self: Self, task_id: str, task_json: dict[str, Any]
     ) -> PreparedExchange:
         exchange_id = PreparedExchange.gen_id()
-        localpath = create_call_dir(exchange_id, self.target_id)
+        localpath = create_call_dir(exchange_id, self.target)
         self.prepare_modules(localpath)
         self.prepare_executor(localpath)
         self.prepare_call_task(localpath, task_id, task_json)

@@ -27,5 +27,5 @@ class SSHDriver(Driver, name="ssh"):
         return self.ssh_user
 
     @property
-    def target_id(self) -> str:
+    def target(self) -> str:
         return self.ssh_target
