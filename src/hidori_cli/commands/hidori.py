@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from dataclasses import dataclass, field
 
@@ -24,6 +25,9 @@ class HidoriCommand(Command[HidoriData]):
     data_cls = HidoriData
 
     def execute(self, data: HidoriData) -> None:
+        asyncio.run(self._main(data))
+
+    async def _main(self, data: HidoriData) -> None:
         user, target = data.destination.split("@")
 
         printer = ConsolePrinter(user=user, target=target)
@@ -38,7 +42,7 @@ class HidoriCommand(Command[HidoriData]):
             task_id=task_id,
             task_json={"name": "Call", "data": {"module": data.module, **extra_data}},
         )
-        driver.finalize(exchange)
-        driver.invoke_executor(exchange, task_id)
+        await driver.finalize(exchange)
+        await driver.invoke_executor(exchange, task_id)
         printer.print_all(exchange.messages)
         exchange.messages.clear()
