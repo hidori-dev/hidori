@@ -57,7 +57,7 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
         invoked_path = get_exchange_dir_path(exchange_id) / path
 
         cmd = (
-            f"ssh {SSH_OPTIONS} -qt -p {ssh_port} "
+            f"ssh {SSH_OPTIONS} -qT -p {ssh_port} "
             f"{ssh_user}@{ssh_target} python3 {invoked_path}"
         ).split()
         cmd.extend(args)

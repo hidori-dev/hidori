@@ -108,7 +108,7 @@ def test_transport_invoke_executor_ok(ssh_transport: SSHTransport):
             "ControlPath=~/.ssh/control-%r@%h:%p",
             "-o",
             "ControlPersist=yes",
-            "-qt",
+            "-qT",
             "-p",
             "50022",
             "user@127.0.0.1",
