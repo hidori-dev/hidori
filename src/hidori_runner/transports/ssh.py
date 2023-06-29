@@ -32,8 +32,7 @@ async def run_command(popen_cmd: str) -> tuple[bool, str]:
     else:
         output = stderr if stderr else stdout
 
-    output = (output or b"").decode()
-    return proc.returncode == 0, output
+    return proc.returncode == 0, (output or b"").decode()
 
 
 def get_exchange_dir_path(exchange_id: str) -> pathlib.Path:

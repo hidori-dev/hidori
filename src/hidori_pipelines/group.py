@@ -40,7 +40,7 @@ class PipelineGroup(Iterable[Pipeline]):
         self._current += 1
         return Pipeline(destination_data, self._pipeline_data)
 
-    async def run(self):
+    async def run(self) -> None:
         pipelines = list(self.prepare_pipelines())
         async with asyncio.TaskGroup() as tg:
             for pipeline in pipelines:
