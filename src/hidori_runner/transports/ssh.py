@@ -1,5 +1,5 @@
+import asyncio
 import pathlib
-import subprocess
 from typing import TYPE_CHECKING
 
 from hidori_common.dirs import get_tmp_home
@@ -19,14 +19,21 @@ SSH_OPTIONS = " ".join(
 )
 
 
-def run_command(popen_cmd: list[str]) -> tuple[bool, str]:
-    results = subprocess.run(popen_cmd, capture_output=True, text=True)
-    if results.returncode == 0:
-        output = results.stdout
+async def run_command(popen_cmd: str) -> tuple[bool, str]:
+    proc = await asyncio.create_subprocess_shell(
+        popen_cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    stdout, stderr = stdout.strip(), stderr.strip()
+    if proc.returncode == 0:
+        output = stdout
     else:
-        output = results.stderr if results.stderr else results.stdout
+        output = stderr if stderr else stdout
 
-    return results.returncode == 0, output.strip()
+    output = (output or b"").decode()
+    return proc.returncode == 0, output
 
 
 def get_exchange_dir_path(exchange_id: str) -> pathlib.Path:
@@ -34,7 +41,9 @@ def get_exchange_dir_path(exchange_id: str) -> pathlib.Path:
 
 
 class SSHTransport(Transport["SSHDriver"], name="ssh"):
-    def push(self, exchange_id: str, source: pathlib.Path) -> list[dict[str, str]]:
+    async def push(
+        self, exchange_id: str, source: pathlib.Path
+    ) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
         ssh_target = self._driver.ssh_target
         ssh_port = self._driver.ssh_port
@@ -43,13 +52,13 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
         cmd = (
             f"scp {SSH_OPTIONS} -prq -P {ssh_port} {source} "
             f"{ssh_user}@{ssh_target}:{exchange_path}"
-        ).split()
+        )
         # TO THE STARS!
-        success, output = run_command(cmd)
+        success, output = await run_command(cmd)
         return get_messages(output, self.name, ignore_parse_error=success)
 
-    def invoke(
-        self, exchange_id: str, path: str, args: list[str]
+    async def invoke(
+        self, exchange_id: str, path: str, args: str
     ) -> list[dict[str, str]]:
         ssh_user = self._driver.ssh_user
         ssh_target = self._driver.ssh_target
@@ -58,8 +67,8 @@ class SSHTransport(Transport["SSHDriver"], name="ssh"):
 
         cmd = (
             f"ssh {SSH_OPTIONS} -qT -p {ssh_port} "
-            f"{ssh_user}@{ssh_target} python3 {invoked_path}"
-        ).split()
-        cmd.extend(args)
-        success, output = run_command(cmd)
+            f"{ssh_user}@{ssh_target} python3 {invoked_path} "
+            f"{args}"
+        )
+        success, output = await run_command(cmd)
         return get_messages(output, self.name, ignore_parse_error=success)

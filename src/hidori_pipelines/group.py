@@ -1,3 +1,4 @@
+import asyncio
 import tomllib
 from typing import Any, Iterable, Iterator
 
@@ -38,3 +39,19 @@ class PipelineGroup(Iterable[Pipeline]):
         destination_data = self._destinations_data[self._current]
         self._current += 1
         return Pipeline(destination_data, self._pipeline_data)
+
+    async def run(self):
+        pipelines = list(self.prepare_pipelines())
+        async with asyncio.TaskGroup() as tg:
+            for pipeline in pipelines:
+                tg.create_task(pipeline.finalize())
+
+        while not all([p.has_completed for p in pipelines]):
+            async with asyncio.TaskGroup() as tg:
+                for pipeline in pipelines:
+                    tg.create_task(pipeline.invoke_step())
+
+    def prepare_pipelines(self) -> Iterator[Pipeline]:
+        for pipeline in self:
+            pipeline.prepare()
+            yield pipeline

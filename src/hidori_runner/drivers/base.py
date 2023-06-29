@@ -88,14 +88,14 @@ class Driver:
             id=exchange_id, localpath=localpath, transport=self.transport_cls(self)
         )
 
-    def finalize(self, exchange: PreparedExchange) -> None:
+    async def finalize(self, exchange: PreparedExchange) -> None:
         transport = exchange.transport
-        push_messages = transport.push(exchange.id, exchange.localpath)
+        push_messages = await transport.push(exchange.id, exchange.localpath)
         exchange.messages.extend(push_messages)
 
-    def invoke_executor(self, exchange: PreparedExchange, task_id: str) -> None:
+    async def invoke_executor(self, exchange: PreparedExchange, task_id: str) -> None:
         transport = exchange.transport
-        invoke_messages = transport.invoke(exchange.id, "executor.py", [task_id])
+        invoke_messages = await transport.invoke(exchange.id, "executor.py", task_id)
         exchange.messages.extend(invoke_messages)
 
     def prepare_modules(self, localpath: pathlib.Path) -> None:

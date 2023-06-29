@@ -1,3 +1,4 @@
+import asyncio
 import pathlib
 from dataclasses import dataclass, field
 
@@ -19,6 +20,4 @@ class PipelineRunCommand(Command[PipelineRunData]):
 
     def execute(self, data: PipelineRunData) -> None:
         group = PipelineGroup.from_toml_path(str(data.pipeline_path))
-        for pipeline in group:
-            pipeline.prepare()
-            pipeline.run()
+        asyncio.run(group.run())

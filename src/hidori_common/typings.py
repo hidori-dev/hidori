@@ -22,7 +22,10 @@ class Pipeline(Protocol):
     def prepare(self) -> None:
         ...
 
-    def run(self) -> None:
+    async def finalize(self) -> None:
+        ...
+
+    async def invoke_step(self) -> None:
         ...
 
 
@@ -41,10 +44,12 @@ class Transport(Protocol[DT]):
     def __init__(self, driver: DT) -> None:
         self._driver = driver
 
-    def push(self, exchange_id: str, source: pathlib.Path) -> list[dict[str, str]]:
+    async def push(
+        self, exchange_id: str, source: pathlib.Path
+    ) -> list[dict[str, str]]:
         ...
 
-    def invoke(
-        self, exchange_id: str, path: str, args: list[str]
+    async def invoke(
+        self, exchange_id: str, path: str, args: str
     ) -> list[dict[str, str]]:
         ...

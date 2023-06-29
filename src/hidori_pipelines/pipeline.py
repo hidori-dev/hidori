@@ -60,6 +60,10 @@ class Pipeline:
     def steps(self) -> list[PipelineStep]:
         return self._steps
 
+    @property
+    def has_completed(self) -> bool:
+        return not self._steps
+
     def _create_steps(self, tasks_data: dict[str, Any]) -> list[PipelineStep]:
         steps: list[PipelineStep] = []
         for name, data in tasks_data.items():
@@ -74,17 +78,20 @@ class Pipeline:
     def prepare(self) -> None:
         self._exchange = self.driver.prepare_pipeline(self)
 
-    def run(self) -> None:
+    async def finalize(self) -> None:
         if not self._exchange:
             raise RuntimeError("pipeline is not prepared")
 
-        self.driver.finalize(self._exchange)
+        await self.driver.finalize(self._exchange)
         self.handle_messages()
-        for pipeline_step in self.steps:
-            self.driver.invoke_executor(self._exchange, pipeline_step.task_id)
-            self.handle_messages()
 
-        self._printer.print_summary()
+    async def invoke_step(self) -> None:
+        if not self._exchange:
+            raise RuntimeError("pipeline is not prepared")
+
+        step = self._steps.pop(0)
+        await self.driver.invoke_executor(self._exchange, step.task_id)
+        self.handle_messages()
 
     def handle_messages(self) -> None:
         if not self._exchange:
