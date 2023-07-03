@@ -5,11 +5,13 @@ import json
 import pathlib
 import shutil
 import uuid
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 from hidori_common.typings import Pipeline, Transport
 from hidori_core.schema.base import Schema
 from hidori_runner.drivers.utils import create_call_dir, create_pipeline_dir
+
+ExchangeStatus = Literal["pending", "running", "failed"]
 
 DEFAULT_DRIVER = "ssh"
 
@@ -21,6 +23,7 @@ class PreparedExchange:
     id: str
     localpath: pathlib.Path
     transport: Transport[Any]
+    status: ExchangeStatus = dataclasses.field(default="pending")
     messages: list[dict[str, str]] = dataclasses.field(default_factory=list)
 
     @classmethod
@@ -92,11 +95,16 @@ class Driver:
         transport = exchange.transport
         push_messages = await transport.push(exchange.id, exchange.localpath)
         exchange.messages.extend(push_messages)
+        if exchange.has_errors:
+            exchange.status = "failed"
 
     async def invoke_executor(self, exchange: PreparedExchange, task_id: str) -> None:
+        exchange.status = "running"
         transport = exchange.transport
         invoke_messages = await transport.invoke(exchange.id, "executor.py", task_id)
         exchange.messages.extend(invoke_messages)
+        if exchange.has_errors:
+            exchange.status = "failed"
 
     def prepare_modules(self, localpath: pathlib.Path) -> None:
         # TODO: Driver should only pick required modules.
