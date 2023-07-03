@@ -1,4 +1,10 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_origin
+
+try:
+    from types import UnionType
+except ImportError:
+    # Compatibility with Python < 3.10
+    UnionType = Union  # type: ignore
 
 from hidori_core.schema.errors import (
     ConstraintError,
@@ -88,19 +94,20 @@ class Schema:
 
 
 def field_from_annotation(annotation: Any, required: bool = True) -> Field:
+    origin = get_origin(annotation)
+    if origin in [Union, UnionType]:
+        assert len(annotation.__args__) == 2
+        assert any([isinstance(None, ty) for ty in annotation.__args__])
+
+        for ty in annotation.__args__:
+            if isinstance(None, ty):
+                continue
+
+            return field_from_annotation(ty, required=False)
+
     for field_cls in FIELDS_REGISTRY:
         field = field_cls.from_annotation(annotation, required)
         if field is not None:
             return field
-
-    if annotation.__origin__ == Union:
-        assert len(annotation.__args__) == 2
-
-        required = False
-        for base_type in annotation.__args__:
-            if isinstance(None, base_type):
-                continue
-
-            return field_from_annotation(base_type, required)
 
     raise RuntimeError("internal error")
