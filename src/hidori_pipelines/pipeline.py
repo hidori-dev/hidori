@@ -64,6 +64,11 @@ class Pipeline:
     def has_completed(self) -> bool:
         return not self._steps
 
+    @property
+    def has_failed(self) -> bool:
+        assert self._exchange
+        return self._exchange.status == "failed"
+
     def _create_steps(self, tasks_data: dict[str, Any]) -> list[PipelineStep]:
         steps: list[PipelineStep] = []
         for name, data in tasks_data.items():
