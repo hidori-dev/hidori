@@ -21,7 +21,7 @@ class Text(Field):
     def from_annotation(
         cls, annotation: Any, required: bool = True
     ) -> Optional["Text"]:
-        return cls(required) if annotation == str else None
+        return cls(required) if annotation is str else None
 
     def __init__(self, required: bool) -> None:
         self.required = required
@@ -29,7 +29,7 @@ class Text(Field):
     def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
         if not isinstance(value, str):
-            raise ValidationError(f"value `{value}` not allowed; is not str")
+            raise ValidationError(f"expected str, got {type(value).__name__}")
 
 
 class OneOf(Field):
@@ -37,7 +37,7 @@ class OneOf(Field):
     def from_annotation(
         cls, annotation: Any, required: bool = True
     ) -> Optional["OneOf"]:
-        if getattr(annotation, "__origin__", None) == Literal:
+        if getattr(annotation, "__origin__", None) is Literal:
             return cls(annotation.__args__, required)
         else:
             return None
@@ -49,9 +49,7 @@ class OneOf(Field):
     def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
         if value not in self.allowed_values:
-            raise ValidationError(
-                f"value `{value}` not allowed; allowed values are {self.allowed_values}"
-            )
+            raise ValidationError(f"not one of allowed values: {self.allowed_values}")
 
 
 class SubSchema(Field):
@@ -59,7 +57,11 @@ class SubSchema(Field):
     def from_annotation(
         cls, annotation: Any, required: bool = True
     ) -> Optional["SubSchema"]:
-        if inspect.isclass(annotation) and issubclass(annotation, Schema):
+        if (
+            inspect.isclass(annotation)
+            and issubclass(annotation, Schema)
+            and annotation is not Schema
+        ):
             return cls(annotation, required)
         else:
             return None
@@ -71,7 +73,7 @@ class SubSchema(Field):
     def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
         if not isinstance(value, dict):
-            raise ValidationError(f"value `{value}` not allowed; is not dict")
+            raise ValidationError(f"expected dict, got {type(value).__name__}")
 
         self.schema.validate(value)
 
@@ -95,7 +97,7 @@ class Dictionary(Field):
     def validate(self, value: Optional[Any]) -> None:
         super().validate(value)
         if not isinstance(value, dict):
-            raise ValidationError(f"value `{value}` not allowed; is not dict")
+            raise ValidationError(f"expected dict, got {type(value).__name__}")
 
         self._validate_items(value)
 

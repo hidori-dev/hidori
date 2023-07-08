@@ -56,16 +56,14 @@ def test_executor_task_file_not_json_error(
     }
 
 
-@pytest.mark.parametrize("missing_field", ["name", "data", "module"])
+@pytest.mark.parametrize("missing_field", ["name", "data"])
 @pytest.mark.parametrize("mock_argv", [["/hidori/executor.py", "foo"]], indirect=True)
 @pytest.mark.usefixtures("mock_argv")
 def test_executor_task_json_missing_required_fields_error(
     missing_field: str, fs: FakeFilesystem, capsys: pytest.CaptureFixture[str]
 ):
     data = {"name": "foo", "data": {"module": "bar", "param": "val"}}
-    el = data["data"] if missing_field == "module" else data
-    assert isinstance(el, dict)
-    el.pop(missing_field)
+    data.pop(missing_field)
 
     fs.create_file("/hidori/task-foo.json", contents=json.dumps(data))
     with pytest.raises(SystemExit):
@@ -77,6 +75,28 @@ def test_executor_task_json_missing_required_fields_error(
         "message": (
             f"internal error - invalid task structure: {{'{missing_field}': "
             "'value for required field not provided'}"
+        ),
+    }
+
+
+@pytest.mark.parametrize("mock_argv", [["/hidori/executor.py", "foo"]], indirect=True)
+@pytest.mark.usefixtures("mock_argv")
+def test_executor_task_json_missing_required_nested_field_error(
+    fs: FakeFilesystem, capsys: pytest.CaptureFixture[str]
+):
+    data = {"name": "foo", "data": {"module": "bar", "param": "val"}}
+    data["data"].pop("module")
+
+    fs.create_file("/hidori/task-foo.json", contents=json.dumps(data))
+    with pytest.raises(SystemExit):
+        executor_main()
+
+    assert json.loads(capsys.readouterr().out) == {
+        "type": "error",
+        "task": "system",
+        "message": (
+            "internal error - invalid task structure: {'data': {'module': "
+            "'value for required field not provided'}}"
         ),
     }
 
