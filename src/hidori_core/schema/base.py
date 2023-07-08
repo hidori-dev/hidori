@@ -84,6 +84,8 @@ class Schema:
             except ValidationError as e:
                 errors[name] = str(e)
                 continue
+            except SchemaError as e:
+                errors[name] = e.errors
             except SkipFieldError:
                 continue
 
