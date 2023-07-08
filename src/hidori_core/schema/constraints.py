@@ -33,9 +33,3 @@ class RequiresConstraint(Constraint):
 
         for field_name in self.required_field_names:
             schema.fields[field_name].required = True
-
-
-def Requires(
-    field_names: List[str], data_conditions: Optional[List[DataCondtion]] = None
-) -> Any:
-    return RequiresConstraint(field_names, data_conditions)
