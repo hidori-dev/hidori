@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_origin
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, get_origin
 
 try:
     from types import UnionType
@@ -17,6 +17,8 @@ TField = TypeVar("TField", bound="Field")
 
 FIELDS_REGISTRY: List[Type["Field"]] = []
 
+_sentinel = object()
+
 
 class Field:
     required: bool
@@ -31,9 +33,9 @@ class Field:
         ...
 
     def validate(self, value: Optional[Any]) -> None:
-        if self.required and not value:
+        if self.required and value is _sentinel:
             raise ValidationError("value for required field not provided")
-        elif self.required is False and not value:
+        elif self.required is False and value is _sentinel:
             raise SkipFieldError()
 
 
@@ -43,6 +45,56 @@ class Constraint:
 
     def apply(self, schema: "Schema", data: Dict[str, Any]) -> None:
         ...
+
+
+class Definition:
+    def __init__(
+        self,
+        constraints: Optional[List[Constraint]] = None,
+        default: Any = _sentinel,
+        default_factory: Optional[Callable[[], Any]] = None,
+    ) -> None:
+        if default is not _sentinel and default_factory is not None:
+            raise RuntimeError("provide either default value or default factory")
+
+        self.constraints = constraints or []
+        self.default = default
+        self.default_factory = default_factory
+        self._field_name: Optional[str] = None
+        self._errors: List[str] = []
+
+    @property
+    def errors(self):
+        return self._errors
+
+    def assign_field_name(self, field_name: str) -> None:
+        self._field_name = field_name
+
+    def validate_constraints(self, annotations: Dict[str, Any]) -> None:
+        for constraint in self.constraints:
+            try:
+                constraint.process_schema(annotations)
+            except ConstraintError as e:
+                self._errors.append(str(e))
+
+    def apply_constraints(self, schema: "Schema", data: Dict[str, Any]) -> None:
+        for constraint in self.constraints:
+            constraint.apply(schema, data)
+
+    def apply_default(self, data: Dict[str, Any]) -> None:
+        assert self._field_name
+        if self.default is not _sentinel:
+            data[self._field_name] = data.get(self._field_name, self.default)
+        elif self.default_factory is not None:
+            data[self._field_name] = data.get(self._field_name, self.default_factory())
+
+
+def define(
+    constraints: Optional[List[Constraint]] = None,
+    default: Optional[Any] = _sentinel,
+    default_factory: Optional[Callable[[], Any]] = None,
+) -> Any:
+    return Definition(constraints, default, default_factory)
 
 
 class Schema:
@@ -56,13 +108,21 @@ class Schema:
             if name == "fields":
                 continue
 
-            constraint = getattr(cls, name, None)
-            if constraint and isinstance(constraint, Constraint):
-                try:
-                    constraint.process_schema(cls.__annotations__)
-                except ConstraintError as e:
-                    errors[name] = str(e)
+            # If a definition is provided, validate the constraints against the
+            # provided annotations. For example, the RequiresConstraint needs
+            # to ensure that the required fields exist in the schema.
+            definition = getattr(cls, name, _sentinel)
+            if isinstance(definition, Definition):
+                definition.assign_field_name(name)
+                definition.validate_constraints(cls.__annotations__)
+                if definition.errors:
+                    errors[name] = definition.errors
                     continue
+            # Assume that user provided a value to be used as a default.
+            elif definition is not _sentinel:
+                field_definition = Definition(default=definition)
+                field_definition.assign_field_name(name)
+                setattr(cls, name, field_definition)
 
             cls.fields[name] = field_from_annotation(annotation)
 
@@ -73,13 +133,13 @@ class Schema:
         errors = {}
 
         for name, field in self.fields.items():
-            constraint = getattr(self, name, None)
-            if constraint and isinstance(constraint, Constraint):
-                constraint.apply(self, data)
+            definition = getattr(self, name, None)
+            if isinstance(definition, Definition):
+                definition.apply_constraints(self, data)
+                definition.apply_default(data)
 
             try:
-                # TODO: No such field provided in data
-                field_data = data.get(name)
+                field_data = data.get(name, _sentinel)
                 field.validate(field_data)
             except ValidationError as e:
                 errors[name] = str(e)
