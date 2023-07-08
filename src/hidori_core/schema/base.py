@@ -64,7 +64,7 @@ class Definition:
         self._errors: List[str] = []
 
     @property
-    def errors(self):
+    def errors(self) -> List[str]:
         return self._errors
 
     def assign_field_name(self, field_name: str) -> None:
@@ -130,7 +130,7 @@ class Schema:
             raise SchemaError(errors)
 
     def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        errors = {}
+        errors: Dict[str, Any] = {}
 
         for name, field in self.fields.items():
             definition = getattr(self, name, None)
