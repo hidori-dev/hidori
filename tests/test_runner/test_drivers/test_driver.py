@@ -19,7 +19,7 @@ def test_driver_invalid_config_init_error(example_driver_cls: type[Driver]):
     with pytest.raises(SchemaError) as e:
         example_driver_cls(config={"value": 42})
 
-    assert e.value.errors == {"value": "value `42` not allowed; is not str"}
+    assert e.value.errors == {"value": "expected str, got int"}
 
 
 def test_driver_init_success(example_driver_cls: type[Driver]):
