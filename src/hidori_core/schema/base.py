@@ -7,7 +7,7 @@ except ImportError:
     UnionType = Union  # type: ignore
 
 from hidori_core.schema.errors import (
-    ConstraintError,
+    ModifierError,
     SchemaError,
     SkipFieldError,
     ValidationError,
@@ -18,6 +18,8 @@ TField = TypeVar("TField", bound="Field")
 FIELDS_REGISTRY: List[Type["Field"]] = []
 
 _sentinel = object()
+
+DataCondtion = Callable[[Dict[str, Any]], bool]
 
 
 class Field:
@@ -39,25 +41,34 @@ class Field:
             raise SkipFieldError()
 
 
-class Constraint:
+class SchemaModifier:
+    data_conditions: List[DataCondtion]
+
     def process_schema(self, annotations: Dict[str, Any]) -> None:
         ...
 
     def apply(self, schema: "Schema", data: Dict[str, Any]) -> None:
+        for condition in self.data_conditions:
+            if not condition(data):
+                return
+
+        self.apply_to_schema(schema, data)
+
+    def apply_to_schema(self, schema: "Schema", data: Dict[str, Any]) -> None:
         ...
 
 
 class Definition:
     def __init__(
         self,
-        constraints: Optional[List[Constraint]] = None,
+        modifiers: Optional[List[SchemaModifier]] = None,
         default: Any = _sentinel,
         default_factory: Optional[Callable[[], Any]] = None,
     ) -> None:
         if default is not _sentinel and default_factory is not None:
             raise RuntimeError("provide either default value or default factory")
 
-        self.constraints = constraints or []
+        self.modifiers = modifiers or []
         self.default = default
         self.default_factory = default_factory
         self._field_name: Optional[str] = None
@@ -70,16 +81,17 @@ class Definition:
     def assign_field_name(self, field_name: str) -> None:
         self._field_name = field_name
 
-    def validate_constraints(self, annotations: Dict[str, Any]) -> None:
-        for constraint in self.constraints:
+    def validate_modifiers(self, annotations: Dict[str, Any]) -> None:
+        for modifier in self.modifiers:
             try:
-                constraint.process_schema(annotations)
-            except ConstraintError as e:
+                modifier.process_schema(annotations)
+            except ModifierError as e:
                 self._errors.append(str(e))
 
-    def apply_constraints(self, schema: "Schema", data: Dict[str, Any]) -> None:
-        for constraint in self.constraints:
-            constraint.apply(schema, data)
+    def apply_modifiers(self, schema: "Schema", data: Dict[str, Any]) -> None:
+        for modifier in self.modifiers:
+            if self._field_name in data:
+                modifier.apply(schema, data)
 
     def apply_default(self, data: Dict[str, Any]) -> None:
         assert self._field_name
@@ -90,11 +102,11 @@ class Definition:
 
 
 def define(
-    constraints: Optional[List[Constraint]] = None,
+    modifiers: Optional[List[SchemaModifier]] = None,
     default: Optional[Any] = _sentinel,
     default_factory: Optional[Callable[[], Any]] = None,
 ) -> Any:
-    return Definition(constraints, default, default_factory)
+    return Definition(modifiers, default, default_factory)
 
 
 class Schema:
@@ -108,13 +120,13 @@ class Schema:
             if name == "fields":
                 continue
 
-            # If a definition is provided, validate the constraints against the
-            # provided annotations. For example, the RequiresConstraint needs
+            # If a definition is provided, validate the modifiers against the
+            # provided annotations. For example, the RequiresModifier needs
             # to ensure that the required fields exist in the schema.
             definition = getattr(cls, name, _sentinel)
             if isinstance(definition, Definition):
                 definition.assign_field_name(name)
-                definition.validate_constraints(cls.__annotations__)
+                definition.validate_modifiers(cls.__annotations__)
                 if definition.errors:
                     errors[name] = definition.errors
                     continue
@@ -135,7 +147,7 @@ class Schema:
         for name, field in self.fields.items():
             definition = getattr(self, name, None)
             if isinstance(definition, Definition):
-                definition.apply_constraints(self, data)
+                definition.apply_modifiers(self, data)
                 definition.apply_default(data)
 
             try:

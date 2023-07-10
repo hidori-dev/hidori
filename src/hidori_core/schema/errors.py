@@ -5,7 +5,7 @@ class ValidationError(Exception):
     ...
 
 
-class ConstraintError(Exception):
+class ModifierError(Exception):
     ...
 
 
