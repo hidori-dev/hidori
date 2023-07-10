@@ -8,7 +8,7 @@ except ImportError:
 
 from hidori_core.modules.base import Module
 from hidori_core.schema.base import Schema, define
-from hidori_core.schema.constraints import RequiresConstraint
+from hidori_core.schema.modifiers import RequiresModifier
 from hidori_core.utils.messenger import Messenger
 
 APT_STATE_INSTALLED = "installed"
@@ -21,8 +21,8 @@ def condition_state_requires_package(data: Dict[str, Any]) -> bool:
 
 class AptSchema(Schema):
     state: Literal["upgraded", "installed", "removed"] = define(
-        constraints=[
-            RequiresConstraint(
+        modifiers=[
+            RequiresModifier(
                 ["package"], data_conditions=[condition_state_requires_package]
             )
         ]
