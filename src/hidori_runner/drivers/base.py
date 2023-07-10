@@ -53,7 +53,6 @@ class Driver:
             raise NotImplementedError(
                 f"target property is not implemented in the driver {name}"
             )
-        # TODO: Verify that transport_cls matches the Transport protocol
         DRIVERS_REGISTRY[name] = cls
 
     def __init__(self, config: Any) -> None:
