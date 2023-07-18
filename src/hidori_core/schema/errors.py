@@ -1,6 +1,14 @@
 from typing import Any, Dict
 
 
+class MultipleDefaultMethodsError(Exception):
+    ...
+
+
+class DefinitionAlreadyAssigned(Exception):
+    ...
+
+
 class ValidationError(Exception):
     ...
 

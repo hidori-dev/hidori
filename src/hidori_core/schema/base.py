@@ -7,7 +7,9 @@ except ImportError:
     UnionType = Union  # type: ignore
 
 from hidori_core.schema.errors import (
+    DefinitionAlreadyAssigned,
     ModifierError,
+    MultipleDefaultMethodsError,
     SchemaError,
     SkipFieldError,
     ValidationError,
@@ -66,7 +68,9 @@ class Definition:
         default_factory: Optional[Callable[[], Any]] = None,
     ) -> None:
         if default is not _sentinel and default_factory is not None:
-            raise RuntimeError("provide either default value or default factory")
+            raise MultipleDefaultMethodsError(
+                "provide either default value or default factory"
+            )
 
         self.modifiers = modifiers or []
         self.default = default
@@ -78,8 +82,17 @@ class Definition:
     def errors(self) -> List[str]:
         return self._errors
 
-    def assign_field_name(self, field_name: str) -> None:
-        self._field_name = field_name
+    @property
+    def field_name(self) -> Optional[str]:
+        return self._field_name
+
+    @field_name.setter
+    def field_name(self, value: str) -> None:
+        if self._field_name is not None:
+            raise DefinitionAlreadyAssigned(
+                f"cannot change field name {self._field_name} for definition"
+            )
+        self._field_name = value
 
     def validate_modifiers(self, annotations: Dict[str, Any]) -> None:
         for modifier in self.modifiers:
@@ -110,22 +123,23 @@ def define(
 
 
 class Schema:
-    fields: Dict[str, Field]
+    _internals_fields: Dict[str, Field]
 
     def __init_subclass__(cls) -> None:
-        cls.fields = {}
+        for name in cls.__annotations__.keys():
+            if name.startswith("_internals"):
+                raise RuntimeError("_internals prefix is reserved for internal use")
+
+        cls._internals_fields = {}
         errors = {}
 
         for name, annotation in cls.__annotations__.items():
-            if name == "fields":
-                continue
-
             # If a definition is provided, validate the modifiers against the
             # provided annotations. For example, the RequiresModifier needs
             # to ensure that the required fields exist in the schema.
             definition = getattr(cls, name, _sentinel)
             if isinstance(definition, Definition):
-                definition.assign_field_name(name)
+                definition.field_name = name
                 definition.validate_modifiers(cls.__annotations__)
                 if definition.errors:
                     errors[name] = definition.errors
@@ -133,10 +147,10 @@ class Schema:
             # Assume that user provided a value to be used as a default.
             elif definition is not _sentinel:
                 field_definition = Definition(default=definition)
-                field_definition.assign_field_name(name)
+                field_definition.field_name = name
                 setattr(cls, name, field_definition)
 
-            cls.fields[name] = field_from_annotation(annotation)
+            cls._internals_fields[name] = field_from_annotation(annotation)
 
         if errors:
             raise SchemaError(errors)
@@ -144,7 +158,7 @@ class Schema:
     def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
         errors: Dict[str, Any] = {}
 
-        for name, field in self.fields.items():
+        for name, field in self._internals_fields.items():
             definition = getattr(self, name, None)
             if isinstance(definition, Definition):
                 definition.apply_modifiers(self, data)

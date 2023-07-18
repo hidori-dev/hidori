@@ -25,4 +25,4 @@ class RequiresModifier(SchemaModifier):
 
     def apply_to_schema(self, schema: Schema, data: Dict[str, Any]) -> None:
         for field_name in self.required_field_names:
-            schema.fields[field_name].required = True
+            schema._internals_fields[field_name].required = True
