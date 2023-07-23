@@ -36,7 +36,7 @@ class Field:
     ) -> Optional[TField]:
         ...
 
-    def validate(self, value: Optional[Any]) -> None:
+    def validate(self, value: Any) -> Any:
         if self.required and value is _sentinel:
             raise ValidationError("value for required field not provided")
         elif self.required is False and value is _sentinel:
@@ -157,6 +157,7 @@ class Schema:
 
     def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
         errors: Dict[str, Any] = {}
+        validated_data: Dict[str, Any] = {}
 
         for name, field in self._internals_fields.items():
             definition = getattr(self, name, None)
@@ -166,7 +167,7 @@ class Schema:
 
             try:
                 field_data = data.get(name, _sentinel)
-                field.validate(field_data)
+                validated_data[name] = field.validate(field_data)
             except ValidationError as e:
                 errors[name] = str(e)
                 continue
@@ -178,7 +179,7 @@ class Schema:
         if errors:
             raise SchemaError(errors)
 
-        return data
+        return validated_data
 
 
 def field_from_annotation(annotation: Any, required: bool = True) -> Field:

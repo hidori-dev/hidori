@@ -3,7 +3,7 @@ from typing import Any, Dict, Literal
 import pytest
 
 from hidori_core.schema import fields as schema_fields
-from hidori_core.schema.base import FIELDS_REGISTRY, Field, Schema, _sentinel
+from hidori_core.schema.base import FIELDS_REGISTRY, Field, Schema, _sentinel, define
 from hidori_core.schema.errors import SchemaError, SkipFieldError, ValidationError
 
 
@@ -14,6 +14,15 @@ class NestedSchema(Schema):
 class SimpleSchema(Schema):
     foo: str
     nested: NestedSchema
+
+
+class NestedSchemaWithDefault(Schema):
+    bar: str = "example"
+
+
+class SimpleSchemaWithDefault(Schema):
+    foo: str = "example"
+    nested: NestedSchemaWithDefault = define(default_factory=dict)
 
 
 class SimpleField(Field):
@@ -76,10 +85,11 @@ def test_anything_field_setup_and_validation(required, exc):
         field.validate(_sentinel)
 
     # Scenario: valid data
-    field.validate(1)
-    field.validate(True)
-    field.validate(object())
-    field.validate("foo")
+    assert field.validate(1) == 1
+    assert field.validate(True) is True
+    obj = object()
+    assert field.validate(obj) == obj
+    assert field.validate("foo") == "foo"
 
 
 @pytest.mark.parametrize(
@@ -109,8 +119,8 @@ def test_text_field_setup_and_validation(required, exc):
     assert str(e.value) == "expected str, got object"
 
     # Scenario: valid data
-    field.validate("foo")
-    field.validate("")
+    assert field.validate("foo") == "foo"
+    assert field.validate("") == ""
 
 
 @pytest.mark.parametrize(
@@ -143,8 +153,8 @@ def test_oneof_field_setup_and_validation(required, exc):
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
 
     # Scenario: valid data
-    field.validate("foo")
-    field.validate(42)
+    assert field.validate("foo") == "foo"
+    assert field.validate(42) == 42
 
 
 @pytest.mark.parametrize(
@@ -197,7 +207,63 @@ def test_schema_field_setup_and_validation(required, exc):
         "nested": {"bar": "value for required field not provided"}
     }
     # Scenario: valid data
-    field.validate({"foo": "example", "nested": {"bar": "example"}})
+    assert field.validate({"foo": "example", "nested": {"bar": "example"}}) == {
+        "foo": "example",
+        "nested": {"bar": "example"},
+    }
+    assert field.validate(
+        {"foo": "example", "extra": "example", "nested": {"bar": "example"}}
+    ) == {
+        "foo": "example",
+        "nested": {"bar": "example"},
+    }
+    assert field.validate(
+        {"foo": "example", "nested": {"bar": "example", "extra": "example"}}
+    ) == {
+        "foo": "example",
+        "nested": {"bar": "example"},
+    }
+
+
+@pytest.mark.parametrize(
+    "required,exc", [(True, ValidationError), (False, SkipFieldError)]
+)
+def test_schema_with_default_field_setup_and_validation(required, exc):
+    assert schema_fields.SubSchema.from_annotation(Any, required) is None
+    assert schema_fields.SubSchema.from_annotation(int, required) is None
+    assert schema_fields.SubSchema.from_annotation(str, required) is None
+    assert schema_fields.SubSchema.from_annotation(Schema, required) is None
+    assert schema_fields.SubSchema.from_annotation(Literal[42, "foo"], required) is None
+
+    field = schema_fields.SubSchema.from_annotation(SimpleSchemaWithDefault, required)
+    assert isinstance(field, schema_fields.SubSchema)
+    assert field.required is required
+    with pytest.raises(exc):
+        field.validate(_sentinel)
+
+    with pytest.raises(ValidationError) as e:
+        field.validate(1)
+    assert str(e.value) == "expected dict, got int"
+    with pytest.raises(ValidationError) as e:
+        field.validate(True)
+    assert str(e.value) == "expected dict, got bool"
+    with pytest.raises(ValidationError) as e:
+        field.validate(object())
+    assert str(e.value) == "expected dict, got object"
+    with pytest.raises(ValidationError) as e:
+        field.validate("value")
+    assert str(e.value) == "expected dict, got str"
+
+    # Scenario: valid data
+    assert field.validate({}) == {"foo": "example", "nested": {"bar": "example"}}
+    assert field.validate({"foo": "cool"}) == {
+        "foo": "cool",
+        "nested": {"bar": "example"},
+    }
+    assert field.validate({"nested": {"bar": "cool"}}) == {
+        "foo": "example",
+        "nested": {"bar": "cool"},
+    }
 
 
 @pytest.mark.parametrize("dict_type", [dict, Dict])
@@ -259,7 +325,9 @@ def test_dict_field_setup_and_validation(dict_type, required, exc):
         field.validate({"foo": {"example": 42, "another": "bar"}})
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
     # Scenario: valid data
-    field.validate({})
-    field.validate({"foo": {}})
-    field.validate({"foo": {"example": 42}})
-    field.validate({"foo": {"example": 42, "another": "foo"}})
+    assert field.validate({}) == {}
+    assert field.validate({"foo": {}}) == {"foo": {}}
+    assert field.validate({"foo": {"example": 42}}) == {"foo": {"example": 42}}
+    assert field.validate({"foo": {"example": 42, "another": "foo"}}) == {
+        "foo": {"example": 42, "another": "foo"}
+    }

@@ -15,6 +15,10 @@ class Anything(Field):
     def __init__(self, required: bool) -> None:
         self.required = required
 
+    def validate(self, value: Any) -> Any:
+        super().validate(value)
+        return value
+
 
 class Text(Field):
     @classmethod
@@ -26,10 +30,11 @@ class Text(Field):
     def __init__(self, required: bool) -> None:
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> None:
+    def validate(self, value: Any) -> str:
         super().validate(value)
         if not isinstance(value, str):
             raise ValidationError(f"expected str, got {type(value).__name__}")
+        return value
 
 
 class OneOf(Field):
@@ -46,10 +51,11 @@ class OneOf(Field):
         self.allowed_values = values
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> None:
+    def validate(self, value: Any) -> Any:
         super().validate(value)
         if value not in self.allowed_values:
             raise ValidationError(f"not one of allowed values: {self.allowed_values}")
+        return value
 
 
 class SubSchema(Field):
@@ -70,12 +76,12 @@ class SubSchema(Field):
         self.schema = schema_cls()
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> None:
+    def validate(self, value: Any) -> Dict[str, Any]:
         super().validate(value)
         if not isinstance(value, dict):
             raise ValidationError(f"expected dict, got {type(value).__name__}")
 
-        self.schema.validate(value)
+        return self.schema.validate(value)
 
 
 class Dictionary(Field):
@@ -94,12 +100,13 @@ class Dictionary(Field):
         self.val_field = field_from_annotation(val_type)
         self.required = required
 
-    def validate(self, value: Optional[Any]) -> None:
+    def validate(self, value: Any) -> Dict[str, Any]:
         super().validate(value)
         if not isinstance(value, dict):
             raise ValidationError(f"expected dict, got {type(value).__name__}")
 
         self._validate_items(value)
+        return value
 
     def _validate_items(self, value: Dict[Any, Any]) -> Dict[Any, Any]:
         for key, val in value.items():
