@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, ge
 
 try:
     from types import UnionType
-except ImportError:
+except ImportError:  # pragma: no cover
     # Compatibility with Python < 3.10
     UnionType = Union  # type: ignore
 
@@ -187,11 +187,8 @@ def field_from_annotation(annotation: Any, required: bool = True) -> Field:
         assert len(annotation.__args__) == 2
         assert any([isinstance(None, ty) for ty in annotation.__args__])
 
-        for ty in annotation.__args__:
-            if isinstance(None, ty):
-                continue
-
-            return field_from_annotation(ty, required=False)
+        ty = annotation.__args__[0] or annotation.__args__[1]
+        return field_from_annotation(ty, required=False)
 
     for field_cls in FIELDS_REGISTRY:
         field = field_cls.from_annotation(annotation, required)
