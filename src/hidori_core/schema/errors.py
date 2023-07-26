@@ -9,6 +9,14 @@ class DefinitionAlreadyAssigned(Exception):
     ...
 
 
+class FieldNameNotAllowed(Exception):
+    ...
+
+
+class UnrecognizedFieldType(Exception):
+    ...
+
+
 class ValidationError(Exception):
     ...
 

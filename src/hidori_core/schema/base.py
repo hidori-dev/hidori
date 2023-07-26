@@ -125,7 +125,9 @@ class Schema:
     def __init_subclass__(cls) -> None:
         for name in cls.__annotations__.keys():
             if name.startswith("_internals"):
-                raise RuntimeError("_internals prefix is reserved for internal use")
+                raise schema_errors.FieldNameNotAllowed(
+                    "_internals prefix is reserved for internal use"
+                )
 
         cls._internals_fields = {}
         errors = {}
@@ -196,4 +198,6 @@ def field_from_annotation(annotation: Any, required: bool = True) -> Field:
         if field is not None:
             return field
 
-    raise RuntimeError("internal error")
+    raise schema_errors.UnrecognizedFieldType(
+        f"could not determine schema field for {annotation.__name__} type"
+    )
