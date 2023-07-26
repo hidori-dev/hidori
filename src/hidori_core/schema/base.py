@@ -164,6 +164,7 @@ class Schema:
                 definition.apply_modifiers(self, data)
                 definition.apply_default(data)
 
+        for name, field in self._internals_fields.items():
             try:
                 field_data = data.get(name, _sentinel)
                 validated_data[name] = field.validate(field_data)
