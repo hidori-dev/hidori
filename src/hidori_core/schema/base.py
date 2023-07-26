@@ -1,3 +1,4 @@
+import abc
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, get_origin
 
 try:
@@ -17,17 +18,18 @@ _sentinel = object()
 DataCondtion = Callable[[Dict[str, Any]], bool]
 
 
-class Field:
+class Field(abc.ABC):
     required: bool
 
     def __init_subclass__(cls) -> None:
         FIELDS_REGISTRY.append(cls)
 
     @classmethod
+    @abc.abstractmethod
     def from_annotation(
         cls: Type[TField], annotation: Any, required: bool = True
     ) -> Optional[TField]:
-        ...
+        raise NotImplementedError()
 
     def validate(self, value: Any) -> Any:
         if self.required and value is _sentinel:
@@ -36,11 +38,12 @@ class Field:
             raise schema_errors.SkipFieldError()
 
 
-class SchemaModifier:
+class SchemaModifier(abc.ABC):
     data_conditions: List[DataCondtion]
 
+    @abc.abstractmethod
     def process_schema(self, annotations: Dict[str, Any]) -> None:
-        ...
+        raise NotImplementedError()
 
     def apply(self, schema: "Schema", data: Dict[str, Any]) -> None:
         for condition in self.data_conditions:
@@ -49,8 +52,9 @@ class SchemaModifier:
 
         self.apply_to_schema(schema, data)
 
+    @abc.abstractmethod
     def apply_to_schema(self, schema: "Schema", data: Dict[str, Any]) -> None:
-        ...
+        raise NotImplementedError()
 
 
 class Definition:

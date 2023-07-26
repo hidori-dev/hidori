@@ -29,6 +29,10 @@ class SimpleField(Field):
     def __init__(self, required: bool) -> None:
         self.required = required
 
+    @classmethod
+    def from_annotation(cls, annotation: Any, required: bool = True) -> Any:
+        return None
+
 
 @pytest.fixture(scope="module")
 def required_simple_field():
