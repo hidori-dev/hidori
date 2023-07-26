@@ -1,7 +1,7 @@
 from typing import Any, Dict, Type
 
+from hidori_core.schema import errors as schema_errors
 from hidori_core.schema.base import Schema
-from hidori_core.schema.errors import SchemaError
 from hidori_core.utils.messenger import Messenger
 
 MODULES_REGISTRY: Dict[str, "Module"] = {}
@@ -21,7 +21,7 @@ class Module:
     def validate(self, task_data: Dict[str, Any], messenger: Messenger) -> None:
         try:
             self.schema.validate(task_data)
-        except SchemaError as e:
+        except schema_errors.SchemaError as e:
             for field, error in e.errors.items():
                 messenger.queue_error(f"{field}: {error}")
 

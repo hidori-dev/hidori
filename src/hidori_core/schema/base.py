@@ -6,14 +6,7 @@ except ImportError:
     # Compatibility with Python < 3.10
     UnionType = Union  # type: ignore
 
-from hidori_core.schema.errors import (
-    DefinitionAlreadyAssigned,
-    ModifierError,
-    MultipleDefaultMethodsError,
-    SchemaError,
-    SkipFieldError,
-    ValidationError,
-)
+from hidori_core.schema import errors as schema_errors
 
 TField = TypeVar("TField", bound="Field")
 
@@ -38,9 +31,9 @@ class Field:
 
     def validate(self, value: Any) -> Any:
         if self.required and value is _sentinel:
-            raise ValidationError("value for required field not provided")
+            raise schema_errors.ValidationError("value for required field not provided")
         elif self.required is False and value is _sentinel:
-            raise SkipFieldError()
+            raise schema_errors.SkipFieldError()
 
 
 class SchemaModifier:
@@ -68,7 +61,7 @@ class Definition:
         default_factory: Optional[Callable[[], Any]] = None,
     ) -> None:
         if default is not _sentinel and default_factory is not None:
-            raise MultipleDefaultMethodsError(
+            raise schema_errors.MultipleDefaultMethodsError(
                 "provide either default value or default factory"
             )
 
@@ -88,9 +81,9 @@ class Definition:
 
     @field_name.setter
     def field_name(self, value: str) -> None:
-        if self._field_name is not None:
-            raise DefinitionAlreadyAssigned(
-                f"cannot change field name {self._field_name} for definition"
+        if self.field_name is not None:
+            raise schema_errors.DefinitionAlreadyAssigned(
+                f"cannot change field name {self.field_name} for definition"
             )
         self._field_name = value
 
@@ -98,7 +91,7 @@ class Definition:
         for modifier in self.modifiers:
             try:
                 modifier.process_schema(annotations)
-            except ModifierError as e:
+            except schema_errors.ModifierError as e:
                 self._errors.append(str(e))
 
     def apply_modifiers(self, schema: "Schema", data: Dict[str, Any]) -> None:
@@ -153,7 +146,7 @@ class Schema:
             cls._internals_fields[name] = field_from_annotation(annotation)
 
         if errors:
-            raise SchemaError(errors)
+            raise schema_errors.SchemaError(errors)
 
     def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
         errors: Dict[str, Any] = {}
@@ -168,16 +161,16 @@ class Schema:
             try:
                 field_data = data.get(name, _sentinel)
                 validated_data[name] = field.validate(field_data)
-            except ValidationError as e:
+            except schema_errors.ValidationError as e:
                 errors[name] = str(e)
                 continue
-            except SchemaError as e:
+            except schema_errors.SchemaError as e:
                 errors[name] = e.errors
-            except SkipFieldError:
+            except schema_errors.SkipFieldError:
                 continue
 
         if errors:
-            raise SchemaError(errors)
+            raise schema_errors.SchemaError(errors)
 
         return validated_data
 

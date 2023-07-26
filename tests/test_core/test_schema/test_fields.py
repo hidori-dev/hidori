@@ -2,9 +2,9 @@ from typing import Any, Dict, Literal
 
 import pytest
 
+from hidori_core.schema import errors as schema_errors
 from hidori_core.schema import fields as schema_fields
 from hidori_core.schema.base import FIELDS_REGISTRY, Field, Schema, _sentinel, define
-from hidori_core.schema.errors import SchemaError, SkipFieldError, ValidationError
 
 
 class NestedSchema(Schema):
@@ -52,14 +52,14 @@ def test_sanity_fields_registry_has_all_fields():
 
 
 def test_field_validation_fail_sentinel_for_required(required_simple_field):
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         required_simple_field.validate(_sentinel)
 
     assert str(e.value) == "value for required field not provided"
 
 
 def test_field_validation_skip_sentinel_for_optional(optional_simple_field):
-    with pytest.raises(SkipFieldError):
+    with pytest.raises(schema_errors.SkipFieldError):
         optional_simple_field.validate(_sentinel)
 
 
@@ -69,7 +69,8 @@ def test_field_validation_with_value_ok(required_simple_field, optional_simple_f
 
 
 @pytest.mark.parametrize(
-    "required,exc", [(True, ValidationError), (False, SkipFieldError)]
+    "required,exc",
+    [(True, schema_errors.ValidationError), (False, schema_errors.SkipFieldError)],
 )
 def test_anything_field_setup_and_validation(required, exc):
     assert schema_fields.Anything.from_annotation(str, required) is None
@@ -93,7 +94,8 @@ def test_anything_field_setup_and_validation(required, exc):
 
 
 @pytest.mark.parametrize(
-    "required,exc", [(True, ValidationError), (False, SkipFieldError)]
+    "required,exc",
+    [(True, schema_errors.ValidationError), (False, schema_errors.SkipFieldError)],
 )
 def test_text_field_setup_and_validation(required, exc):
     assert schema_fields.Text.from_annotation(Any, required) is None
@@ -108,13 +110,13 @@ def test_text_field_setup_and_validation(required, exc):
     with pytest.raises(exc):
         field.validate(_sentinel)
 
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(1)
     assert str(e.value) == "expected str, got int"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(True)
     assert str(e.value) == "expected str, got bool"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(object())
     assert str(e.value) == "expected str, got object"
 
@@ -124,7 +126,8 @@ def test_text_field_setup_and_validation(required, exc):
 
 
 @pytest.mark.parametrize(
-    "required,exc", [(True, ValidationError), (False, SkipFieldError)]
+    "required,exc",
+    [(True, schema_errors.ValidationError), (False, schema_errors.SkipFieldError)],
 )
 def test_oneof_field_setup_and_validation(required, exc):
     assert schema_fields.OneOf.from_annotation(Any, required) is None
@@ -139,16 +142,16 @@ def test_oneof_field_setup_and_validation(required, exc):
     with pytest.raises(exc):
         field.validate(_sentinel)
 
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(1)
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(True)
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(object())
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate("value")
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
 
@@ -158,7 +161,8 @@ def test_oneof_field_setup_and_validation(required, exc):
 
 
 @pytest.mark.parametrize(
-    "required,exc", [(True, ValidationError), (False, SkipFieldError)]
+    "required,exc",
+    [(True, schema_errors.ValidationError), (False, schema_errors.SkipFieldError)],
 )
 def test_schema_field_setup_and_validation(required, exc):
     assert schema_fields.SubSchema.from_annotation(Any, required) is None
@@ -173,35 +177,35 @@ def test_schema_field_setup_and_validation(required, exc):
     with pytest.raises(exc):
         field.validate(_sentinel)
 
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(1)
     assert str(e.value) == "expected dict, got int"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(True)
     assert str(e.value) == "expected dict, got bool"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(object())
     assert str(e.value) == "expected dict, got object"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate("value")
     assert str(e.value) == "expected dict, got str"
 
     # Scenario: empty data is invalid for schema with required fields
-    with pytest.raises(SchemaError) as e:
+    with pytest.raises(schema_errors.SchemaError) as e:
         field.validate({})
     assert e.value.errors == {
         "foo": "value for required field not provided",
         "nested": "value for required field not provided",
     }
     # Scenario: data with invalid value type and required field not provided
-    with pytest.raises(SchemaError) as e:
+    with pytest.raises(schema_errors.SchemaError) as e:
         field.validate({"foo": 42})
     assert e.value.errors == {
         "foo": "expected str, got int",
         "nested": "value for required field not provided",
     }
     # Scenario: valid data for one field and empty data for the subschema
-    with pytest.raises(SchemaError) as e:
+    with pytest.raises(schema_errors.SchemaError) as e:
         field.validate({"foo": "example", "nested": {}})
     assert e.value.errors == {
         "nested": {"bar": "value for required field not provided"}
@@ -226,7 +230,8 @@ def test_schema_field_setup_and_validation(required, exc):
 
 
 @pytest.mark.parametrize(
-    "required,exc", [(True, ValidationError), (False, SkipFieldError)]
+    "required,exc",
+    [(True, schema_errors.ValidationError), (False, schema_errors.SkipFieldError)],
 )
 def test_schema_with_default_field_setup_and_validation(required, exc):
     assert schema_fields.SubSchema.from_annotation(Any, required) is None
@@ -241,16 +246,16 @@ def test_schema_with_default_field_setup_and_validation(required, exc):
     with pytest.raises(exc):
         field.validate(_sentinel)
 
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(1)
     assert str(e.value) == "expected dict, got int"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(True)
     assert str(e.value) == "expected dict, got bool"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(object())
     assert str(e.value) == "expected dict, got object"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate("value")
     assert str(e.value) == "expected dict, got str"
 
@@ -268,7 +273,8 @@ def test_schema_with_default_field_setup_and_validation(required, exc):
 
 @pytest.mark.parametrize("dict_type", [dict, Dict])
 @pytest.mark.parametrize(
-    "required,exc", [(True, ValidationError), (False, SkipFieldError)]
+    "required,exc",
+    [(True, schema_errors.ValidationError), (False, schema_errors.SkipFieldError)],
 )
 def test_dict_field_setup_and_validation(dict_type, required, exc):
     assert schema_fields.Dictionary.from_annotation(Any, required) is None
@@ -291,37 +297,37 @@ def test_dict_field_setup_and_validation(dict_type, required, exc):
     with pytest.raises(exc):
         field.validate(_sentinel)
 
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(1)
     assert str(e.value) == "expected dict, got int"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(True)
     assert str(e.value) == "expected dict, got bool"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate(object())
     assert str(e.value) == "expected dict, got object"
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate("value")
     assert str(e.value) == "expected dict, got str"
 
     # Scenario: invalid key and value data types
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate({13: "foo"})
     assert str(e.value) == "expected str, got int"
     # Scenario: invalid value data type
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate({"foo": "example"})
     assert str(e.value) == "expected dict, got str"
     # Scenario: invalid key and value data for nested dict
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate({"foo": {13: "example"}})
     assert str(e.value) == "expected str, got int"
     # Scenario: invalid value for the nested dict
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate({"foo": {"example": 13}})
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
     # Scenario: invalid value for one of the nested dict values
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(schema_errors.ValidationError) as e:
         field.validate({"foo": {"example": 42, "another": "bar"}})
     assert str(e.value) == "not one of allowed values: (42, 'foo')"
     # Scenario: valid data

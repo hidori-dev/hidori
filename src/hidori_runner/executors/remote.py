@@ -5,7 +5,8 @@ import traceback
 from typing import NoReturn
 
 from hidori_core.modules import MODULES_REGISTRY
-from hidori_core.schema import Schema, SchemaError
+from hidori_core.schema import Schema
+from hidori_core.schema import errors as schema_errors
 from hidori_core.utils import Messenger
 
 
@@ -50,7 +51,7 @@ def main() -> None:
 
     try:
         TaskSchema().validate(data)
-    except SchemaError as e:
+    except schema_errors.SchemaError as e:
         exit_with_error(
             system_messenger, f"internal error - invalid task structure: {e}"
         )

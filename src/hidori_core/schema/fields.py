@@ -1,8 +1,8 @@
 import inspect
 from typing import Any, Dict, Literal, Optional, Tuple, Type
 
+from hidori_core.schema import errors as schema_errors
 from hidori_core.schema.base import Field, Schema, field_from_annotation
-from hidori_core.schema.errors import ValidationError
 
 
 class Anything(Field):
@@ -33,7 +33,9 @@ class Text(Field):
     def validate(self, value: Any) -> str:
         super().validate(value)
         if not isinstance(value, str):
-            raise ValidationError(f"expected str, got {type(value).__name__}")
+            raise schema_errors.ValidationError(
+                f"expected str, got {type(value).__name__}"
+            )
         return value
 
 
@@ -54,7 +56,9 @@ class OneOf(Field):
     def validate(self, value: Any) -> Any:
         super().validate(value)
         if value not in self.allowed_values:
-            raise ValidationError(f"not one of allowed values: {self.allowed_values}")
+            raise schema_errors.ValidationError(
+                f"not one of allowed values: {self.allowed_values}"
+            )
         return value
 
 
@@ -79,7 +83,9 @@ class SubSchema(Field):
     def validate(self, value: Any) -> Dict[str, Any]:
         super().validate(value)
         if not isinstance(value, dict):
-            raise ValidationError(f"expected dict, got {type(value).__name__}")
+            raise schema_errors.ValidationError(
+                f"expected dict, got {type(value).__name__}"
+            )
 
         return self.schema.validate(value)
 
@@ -103,7 +109,9 @@ class Dictionary(Field):
     def validate(self, value: Any) -> Dict[str, Any]:
         super().validate(value)
         if not isinstance(value, dict):
-            raise ValidationError(f"expected dict, got {type(value).__name__}")
+            raise schema_errors.ValidationError(
+                f"expected dict, got {type(value).__name__}"
+            )
 
         self._validate_items(value)
         return value

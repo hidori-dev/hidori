@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 
+from hidori_core.schema import errors as schema_errors
 from hidori_core.schema.base import DataCondtion, Schema, SchemaModifier
-from hidori_core.schema.errors import ModifierError
 
 
 class RequiresModifier(SchemaModifier):
@@ -18,7 +18,7 @@ class RequiresModifier(SchemaModifier):
             sorted(self.required_field_names.difference(annotations.keys()))
         )
         if undefined_field_names:
-            raise ModifierError(
+            raise schema_errors.ModifierError(
                 f"fields named ({undefined_field_names}) "
                 "might be required but are undefined"
             )

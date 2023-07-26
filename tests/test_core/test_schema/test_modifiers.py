@@ -2,8 +2,8 @@ from typing import Any, Literal
 
 import pytest
 
+from hidori_core.schema import errors as schema_errors
 from hidori_core.schema.base import DataCondtion, Schema, SchemaModifier
-from hidori_core.schema.errors import ModifierError
 from hidori_core.schema.modifiers import RequiresModifier
 
 
@@ -13,7 +13,7 @@ class SimpleModifier(SchemaModifier):
 
     def process_schema(self, annotations: dict[str, Any]) -> None:
         if "throw_error" in annotations:
-            raise ModifierError()
+            raise schema_errors.ModifierError()
 
     def apply_to_schema(self, schema: Schema, data: dict[str, Any]) -> None:
         if data["state"] == "modify":
@@ -42,7 +42,7 @@ class OptionalSchema(Schema):
 def test_simple_modifier_throw_error_on_schema_processing():
     modifier = SimpleModifier()
     schema_annotations = ErrorSchema.__annotations__.copy()
-    with pytest.raises(ModifierError):
+    with pytest.raises(schema_errors.ModifierError):
         modifier.process_schema(ErrorSchema.__annotations__)
     assert schema_annotations == ErrorSchema.__annotations__
 
@@ -112,7 +112,7 @@ def test_simple_modifier_run_on_fulfilled_data_conditions():
 def test_requires_modifier_fails_missing_fields():
     modifier = RequiresModifier(field_names=["a", "b"])
     schema_annotations = ErrorSchema.__annotations__.copy()
-    with pytest.raises(ModifierError) as e:
+    with pytest.raises(schema_errors.ModifierError) as e:
         modifier.process_schema(ErrorSchema.__annotations__)
     assert schema_annotations == ErrorSchema.__annotations__
     assert str(e.value) == "fields named (a, b) might be required but are undefined"

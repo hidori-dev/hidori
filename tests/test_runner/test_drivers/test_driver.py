@@ -2,21 +2,21 @@ from unittest.mock import Mock
 
 import pytest
 
-from hidori_core.schema.errors import SchemaError
+from hidori_core.schema import errors as schema_errors
 from hidori_pipelines.pipeline import Pipeline
 from hidori_runner.drivers.base import DRIVERS_REGISTRY, Driver, create_driver
 from hidori_runner.drivers.utils import create_pipeline_dir, get_pipelines_path
 
 
 def test_driver_empty_config_init_error(example_driver_cls: type[Driver]):
-    with pytest.raises(SchemaError) as e:
+    with pytest.raises(schema_errors.SchemaError) as e:
         example_driver_cls(config={})
 
     assert e.value.errors == {"value": "value for required field not provided"}
 
 
 def test_driver_invalid_config_init_error(example_driver_cls: type[Driver]):
-    with pytest.raises(SchemaError) as e:
+    with pytest.raises(schema_errors.SchemaError) as e:
         example_driver_cls(config={"value": 42})
 
     assert e.value.errors == {"value": "expected str, got int"}

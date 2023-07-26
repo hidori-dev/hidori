@@ -2,12 +2,8 @@ from unittest.mock import Mock, call
 
 import pytest
 
+from hidori_core.schema import errors as schema_errors
 from hidori_core.schema.base import Definition, _sentinel, define
-from hidori_core.schema.errors import (
-    DefinitionAlreadyAssigned,
-    ModifierError,
-    MultipleDefaultMethodsError,
-)
 
 
 def test_schema_define_without_arguments():
@@ -24,7 +20,7 @@ def test_schema_define_without_arguments():
 @pytest.mark.parametrize("default_factory", (None, Mock()))
 def test_schema_define_with_arguments(modifiers, default, default_factory):
     if default is not _sentinel and default_factory:
-        with pytest.raises(MultipleDefaultMethodsError):
+        with pytest.raises(schema_errors.MultipleDefaultMethodsError):
             define(modifiers, default, default_factory)
     else:
         definition: Definition = define(modifiers, default, default_factory)
@@ -46,7 +42,7 @@ def test_schema_definition_cannot_reassign_field_name():
     definition: Definition = define()
     assert definition._field_name is None
     definition.field_name = "example"
-    with pytest.raises(DefinitionAlreadyAssigned):
+    with pytest.raises(schema_errors.DefinitionAlreadyAssigned):
         definition.field_name = "another"
     assert definition._field_name == "example"
 
@@ -67,10 +63,12 @@ def test_schema_definition_validate_modifiers_no_error(modifiers):
 @pytest.mark.parametrize(
     "modifiers",
     (
-        [Mock(process_schema=Mock(side_effect=ModifierError("first")))],
+        [Mock(process_schema=Mock(side_effect=schema_errors.ModifierError("first")))],
         [
-            Mock(process_schema=Mock(side_effect=ModifierError("first"))),
-            Mock(process_schema=Mock(side_effect=ModifierError("second"))),
+            Mock(process_schema=Mock(side_effect=schema_errors.ModifierError("first"))),
+            Mock(
+                process_schema=Mock(side_effect=schema_errors.ModifierError("second"))
+            ),
         ],
     ),
 )
