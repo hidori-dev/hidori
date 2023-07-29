@@ -6,6 +6,23 @@ on:
     branches: [main]
 
 jobs:
+  test-core:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8.17", "3.9.17", "3.10.12"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -U pytest pytest-cov
+      - name: Run tests
+        run: PYTHONPATH=src pytest --no-cov tests/test_core
+
   test-linux:
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental }}
@@ -16,33 +33,23 @@ jobs:
         include:
           - python-version: "3.12.0-beta.3"
             experimental: true
-
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-
       - name: Install poetry
         run: pipx install poetry==1.5.1
-
       - name: Setup python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
-
       - name: Use python ${{ matrix.python-version }} for poetry
         run: poetry env use ${{ matrix.python-version }}
-
       - name: Install dependencies
         run: poetry install
-
       - name: Run pre-commit linters and checks
         run: poetry run pre-commit run --all-files
         if: ${{ matrix.python-version == '3.11.4' }}
-
       - name: Check typing with mypy
         run: poetry run mypy --strict
-
       - name: Run tests
         run: poetry run pytest tests
