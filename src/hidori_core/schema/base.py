@@ -123,6 +123,9 @@ class Schema:
     _internals_fields: Dict[str, Field]
 
     def __init_subclass__(cls) -> None:
+        # old pythons unfortunately
+        cls.__annotations__.pop("_internals_fields", "")
+
         for name in cls.__annotations__.keys():
             if name.startswith("_internals"):
                 raise schema_errors.FieldNameNotAllowed(

@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Dict, List, Literal, Optional
 
 import pytest
 
@@ -8,14 +8,14 @@ from hidori_core.schema.modifiers import RequiresModifier
 
 
 class SimpleModifier(SchemaModifier):
-    def __init__(self, data_conditions: list[DataCondtion] | None = None) -> None:
+    def __init__(self, data_conditions: Optional[List[DataCondtion]] = None) -> None:
         self.data_conditions = data_conditions or []
 
-    def process_schema(self, annotations: dict[str, Any]) -> None:
+    def process_schema(self, annotations: Dict[str, Any]) -> None:
         if "throw_error" in annotations:
             raise schema_errors.ModifierError()
 
-    def apply_to_schema(self, schema: Schema, data: dict[str, Any]) -> None:
+    def apply_to_schema(self, schema: Schema, data: Dict[str, Any]) -> None:
         if data["state"] == "modify":
             setattr(schema._internals_fields["a"], "modified", True)
             setattr(schema._internals_fields["b"], "modified", True)
@@ -36,7 +36,7 @@ class SimpleSchema(Schema):
 
 class OptionalSchema(Schema):
     a: str
-    b: str | None
+    b: Optional[str]
 
 
 def test_simple_modifier_throw_error_on_schema_processing():

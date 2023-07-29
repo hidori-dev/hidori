@@ -281,6 +281,12 @@ def test_schema_with_default_field_setup_and_validation(required, exc):
     [(True, schema_errors.ValidationError), (False, schema_errors.SkipFieldError)],
 )
 def test_dict_field_setup_and_validation(dict_type, required, exc):
+    # old pythons unfortunately
+    try:
+        dict_type[str, str]
+    except TypeError:
+        return
+
     assert schema_fields.Dictionary.from_annotation(Any, required) is None
     assert schema_fields.Dictionary.from_annotation(int, required) is None
     assert schema_fields.Dictionary.from_annotation(str, required) is None
