@@ -36,7 +36,7 @@ python = "^3.11"
 
 [tool.poetry.group.dev.dependencies]
 black = "23.7.0"
-flake8 = "6.0.0"
+flake8 = "6.1.0"
 freezegun = "1.2.2"
 ipython = "8.14.0"
 isort = "5.12.0"
