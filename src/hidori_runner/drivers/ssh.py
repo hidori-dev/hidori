@@ -16,8 +16,7 @@ class SSHDriver(Driver, name="ssh"):
     schema = SSHSchema()
     transport_cls = transports.SSHTransport
 
-    def __init__(self, config: dict[str, str]) -> None:
-        super().__init__(config)
+    def init(self, config: dict[str, str]) -> None:
         self.ssh_target = config["target"]
         self.ssh_user = config["user"]
         self.ssh_port = config.get("port", "22")

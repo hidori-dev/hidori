@@ -69,8 +69,7 @@ class ExampleDriver(Driver, name="example"):
     schema = ExampleDriverSchema()
     transport_cls = ExampleTransport
 
-    def __init__(self, config: dict[str, str]) -> None:
-        super().__init__(config)
+    def init(self, config: dict[str, str]) -> None:
         self.value = config["value"]
 
     @property

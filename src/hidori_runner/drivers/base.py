@@ -45,18 +45,28 @@ class Driver:
         if name in DRIVERS_REGISTRY:
             raise RuntimeError(f"{name} driver is already registered.")
 
-        if getattr(cls.user, "__isabstractmethod__", True):
+        if getattr(cls.init, "__isabstractmethod__", False):
+            raise NotImplementedError(
+                f"init method is not implemented in the driver {name}"
+            )
+
+        if getattr(cls.user, "__isabstractmethod__", False):
             raise NotImplementedError(
                 f"user property is not implemented in the driver {name}"
             )
-        if getattr(cls.target, "__isabstractmethod__", True):
+        if getattr(cls.target, "__isabstractmethod__", False):
             raise NotImplementedError(
                 f"target property is not implemented in the driver {name}"
             )
         DRIVERS_REGISTRY[name] = cls
 
     def __init__(self, config: Any) -> None:
-        self.schema.validate(config)
+        validated_config = self.schema.validate(config)
+        self.init(validated_config)
+
+    @abc.abstractmethod
+    def init(self, config: Any) -> None:
+        ...
 
     @property
     @abc.abstractmethod
